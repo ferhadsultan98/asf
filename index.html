@@ -3,313 +3,365 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spatial Discovery UI</title>
+    <title>Universal AI Hub</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap');
+
         :root {
-            --bg-color: #fdfdfd;
-            --grid-color: #e2e2e2;
-            --card-border: #eaeaea;
-            --text-main: #333;
-            --text-sub: #666;
-            --accent: #0066cc;
+            --bg: #000000;
+            --text-main: #ededed;
+            --text-muted: #888888;
+            --border: #333333;
+            --glow: 0 0 15px rgba(51, 51, 51, 0.4);
+            --accent: #ffffff;
         }
 
-        body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh;
-            overflow: hidden; background: var(--bg-color);
-            font-family: system-ui, -apple-system, sans-serif;
-            user-select: none;
-        }
-
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 100;
-            display: flex; flex-direction: column; justify-content: space-between;
-            padding: 24px; box-sizing: border-box;
-        }
-
-        .panel {
-            pointer-events: auto; background: rgba(255, 255, 255, 0.85);
-            padding: 16px; border-radius: 16px; border: 1px solid var(--card-border);
-            box-shadow: 0 4px 24px rgba(0,0,0,0.06); backdrop-filter: blur(12px);
-        }
-
-        #search-container { width: 480px; margin: 0 auto; display: flex; gap: 12px; }
-        #search-input { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; }
-        #search-input:focus { border-color: var(--accent); }
-        button { padding: 12px 20px; background: var(--text-main); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        #timeline-container { width: 300px; display: flex; flex-direction: column; gap: 8px; }
-        #timeline { width: 100%; cursor: pointer; }
-        .timeline-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); font-weight: 500; }
-
-        #viewport { width: 100vw; height: 100vh; position: absolute; cursor: grab; }
-        #viewport:active { cursor: grabbing; }
-        
-        #canvas {
-            position: absolute; top: 50%; left: 50%;
-            width: 0; height: 0; overflow: visible;
+        body {
+            font-family: 'Geist', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .grid {
-            position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-            background-image: radial-gradient(var(--grid-color) 2px, transparent 2px);
-            background-size: 40px 40px; pointer-events: none;
-        }
-
-        svg {
-            position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
-            pointer-events: none; overflow: visible;
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: #050505;
         }
         
-        path.connection {
-            stroke: #d0d0d0; stroke-width: 2.5px; fill: none;
-            stroke-dasharray: 6; animation: dash 20s linear infinite;
-        }
-
-        @keyframes dash { to { stroke-dashoffset: -100; } }
-
-        .card {
-            position: absolute; width: 340px; background: white;
-            border: 1px solid var(--card-border); border-radius: 20px; padding: 24px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.05); pointer-events: auto; cursor: default;
-            transform: translate(-50%, -50%); transition: opacity 0.3s ease;
-        }
-
-        .card.hidden { opacity: 0; pointer-events: none; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .card-title { font-weight: 700; font-size: 18px; color: var(--text-main); margin: 0; }
-        .model-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: #f0f0f0; color: #555; font-weight: 600; letter-spacing: 0.5px; }
-        .card-content { font-size: 15px; color: var(--text-sub); line-height: 1.6; margin: 0; }
+        .nav-group { display: flex; flex-direction: column; gap: 8px; }
+        .nav-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; }
         
-        .citation {
-            color: var(--accent); cursor: pointer; text-decoration: none;
-            background: rgba(0, 102, 204, 0.1); padding: 2px 6px; border-radius: 6px;
-            font-weight: 500; transition: background 0.2s; pointer-events: auto;
+        .btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 8px 12px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
         }
-        .citation:hover { background: rgba(0, 102, 204, 0.2); }
+        .btn:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
+        .btn.active { color: var(--text-main); background: rgba(255,255,255,0.1); border-color: var(--border); box-shadow: var(--glow); }
 
-        .source-bubble {
-            position: absolute; width: 48px; height: 48px; background: white;
-            border: 1px solid var(--card-border); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 600; color: var(--text-sub);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); pointer-events: auto;
-            animation: float 4s ease-in-out infinite;
+        /* Main Area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        .source-bubble:nth-child(even) { animation-delay: -2s; animation-duration: 5s; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        .chat-container {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Input Area */
+        .input-wrapper {
+            padding: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .cmd-k-container {
+            position: relative;
+            background: #0a0a0a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: var(--glow);
+            transition: all 0.3s ease;
+        }
+
+        .cmd-k-container:focus-within { border-color: #555; }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 15px;
+            padding: 16px;
+            resize: none;
+            outline: none;
+            min-height: 52px;
+            line-height: 1.4;
+            transition: height 0.2s;
+            overflow: hidden;
+        }
+
+        .shortcut-hint {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            pointer-events: none;
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #111;
+        }
+
+        /* Output Elements */
+        .reasoning-stream { font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--border); padding-left: 12px; margin-bottom: 16px;}
+        .step { display: none; align-items: center; gap: 8px; }
+        .step.active { display: flex; color: var(--text-main); }
+        .step.done { display: flex; color: var(--text-muted); }
+        .spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .citations { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+        .citation-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #111;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .citation-card:hover { border-color: #555; }
+        .favicon { width: 14px; height: 14px; background: #333; border-radius: 2px; }
+
+        .output-content { font-size: 15px; line-height: 1.6; }
+        
+        /* Markdown / Code Blocks */
+        pre {
+            background: #0a0a0a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        code { font-family: monospace; font-size: 13px; color: #a1b56c; }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #222;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-btn:hover { background: #333; color: var(--text-main); }
+        .lang-badge { position: absolute; top: -10px; left: 16px; background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; font-size: 10px; border-radius: 4px; color: var(--text-muted); }
+
+        /* Gallery */
+        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+        .gallery-img { width: 100%; aspect-ratio: 1; background: #111; border: 1px solid var(--border); border-radius: 8px; object-fit: cover; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+        .gallery-img:hover { transform: scale(1.05); box-shadow: var(--glow); border-color: #555; z-index: 10; position: relative; }
+        
     </style>
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div id="search-container" class="panel">
-            <input type="text" id="search-input" placeholder="Ask the spatial canvas..." value="Explain Quantum Computing">
-            <button onclick="handleSearch()">Search</button>
+    <aside class="sidebar">
+        <div class="nav-group">
+            <span class="nav-label">Persona Mode</span>
+            <button class="btn active" onclick="setMode('General', this)">General</button>
+            <button class="btn" onclick="setMode('Coder', this)">Coder</button>
+            <button class="btn" onclick="setMode('Researcher', this)">Researcher</button>
+            <button class="btn" onclick="setMode('Artist', this)">Artist</button>
         </div>
-        
-        <div id="timeline-container" class="panel">
-            <div class="timeline-labels">
-                <span>Origin</span>
-                <span id="step-label">Step 1</span>
-            </div>
-            <input type="range" id="timeline" min="1" max="1" value="1" oninput="updateTimeline()">
+        <div class="nav-group">
+            <span class="nav-label">Core Model</span>
+            <button class="btn active" onclick="setModel('GPT-4o', this)">GPT-4o</button>
+            <button class="btn" onclick="setModel('Claude 3.5 Sonnet', this)">Claude 3.5 Sonnet</button>
+            <button class="btn" onclick="setModel('Llama 3', this)">Llama 3</button>
         </div>
-    </div>
+    </aside>
 
-    <div id="viewport">
-        <div id="canvas">
-            <div class="grid"></div>
-            <svg id="svg-layer"></svg>
+    <main class="main">
+        <div class="chat-container" id="chat">
+            </div>
+
+        <div class="input-wrapper">
+            <div class="cmd-k-container">
+                <textarea id="promptInput" placeholder="Ask anything..." rows="1" oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
+                <div class="shortcut-hint" id="shortcutHint">⌘K</div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        const viewport = document.getElementById('viewport');
-        const canvas = document.getElementById('canvas');
-        const svgLayer = document.getElementById('svg-layer');
-        const searchInput = document.getElementById('search-input');
-        const timeline = document.getElementById('timeline');
-        const stepLabel = document.getElementById('step-label');
-
-        let scale = 1;
-        let panX = 0;
-        let panY = 0;
-        let isDragging = false;
-        let startX, startY;
+        let currentMode = 'General';
         
-        let currentStep = 0;
-        const nodes = [];
-        const links = [];
-
-        // Canvas Panning
-        viewport.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.card') || e.target.closest('.panel')) return;
-            isDragging = true;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
+        // Command-K Listener
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('promptInput').focus();
+            }
         });
 
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            panX = e.clientX - startX;
-            panY = e.clientY - startY;
-            updateTransform();
-        });
+        // Input interactions
+        const promptInput = document.getElementById('promptInput');
+        promptInput.addEventListener('focus', () => { document.getElementById('shortcutHint').style.display = 'none'; });
+        promptInput.addEventListener('blur', () => { if(!promptInput.value) document.getElementById('shortcutHint').style.display = 'block'; });
 
-        window.addEventListener('mouseup', () => isDragging = false);
-
-        // Canvas Zooming
-        viewport.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomSensitivity = 0.001;
-            const delta = -e.deltaY * zoomSensitivity;
-            const newScale = Math.min(Math.max(0.2, scale + delta), 3);
-            scale = newScale;
-            updateTransform();
-        }, { passive: false });
-
-        function updateTransform() {
-            canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
         }
 
-        // Search & Node Generation Logic
-        function handleSearch() {
-            const query = searchInput.value.trim();
-            if (!query) return;
-            currentStep++;
-            timeline.max = currentStep;
-            timeline.value = currentStep;
-            updateTimeline();
-
-            createNode({
-                id: `node-${Date.now()}`,
-                x: -panX / scale, 
-                y: -panY / scale,
-                title: query,
-                content: `Quantum computing utilizes quantum mechanics to solve complex problems faster than classical computers. <span class="citation" onclick="handleCitation(event, '${Date.now()}', 'text')">[1] Core Concepts</span> <span class="citation" onclick="handleCitation(event, '${Date.now()}', 'image')">[2] Architecture</span>`,
-                model: 'Gemini Pro',
-                step: currentStep,
-                type: 'main'
-            });
-            searchInput.value = '';
+        function setMode(mode, el) {
+            currentMode = mode;
+            updateActiveState(el);
         }
 
-        function handleCitation(e, parentId, type) {
-            const parentEl = e.target.closest('.card');
-            const pX = parseFloat(parentEl.dataset.x);
-            const pY = parseFloat(parentEl.dataset.y);
-            
-            currentStep++;
-            timeline.max = currentStep;
-            timeline.value = currentStep;
-            updateTimeline();
+        function setModel(model, el) { updateActiveState(el); }
 
-            const childId = `node-${Date.now()}`;
-            const yOffset = (Math.random() - 0.5) * 300;
-            
-            const childData = {
-                id: childId,
-                x: pX + 450,
-                y: pY + yOffset,
-                title: type === 'text' ? 'Superposition Detail' : 'Qubit Diagram',
-                content: type === 'text' 
-                    ? 'Superposition allows qubits to exist in multiple states simultaneously, expanding processing capacity.' 
-                    : '*(Visual preview generated by image model)*<br><br>DALL-E rendered diagram of a quantum circuit.',
-                model: type === 'text' ? 'GPT-4' : 'DALL-E 3',
-                step: currentStep,
-                type: 'child'
-            };
-
-            createNode(childData);
-            createLink(parentEl.id, childId);
+        function updateActiveState(clickedBtn) {
+            const siblings = clickedBtn.parentElement.querySelectorAll('.btn');
+            siblings.forEach(btn => btn.classList.remove('active'));
+            clickedBtn.classList.add('active');
         }
 
-        function createNode(data) {
-            nodes.push(data);
-            
-            const card = document.createElement('div');
-            card.className = `card step-${data.step}`;
-            card.id = data.id;
-            card.dataset.step = data.step;
-            card.dataset.x = data.x;
-            card.dataset.y = data.y;
-            card.style.left = `${data.x}px`;
-            card.style.top = `${data.y}px`;
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="card-title">${data.title}</h3>
-                    <span class="model-badge">${data.model}</span>
-                </div>
-                <p class="card-content">${data.content}</p>
-            `;
-
-            if (data.type === 'main') addSourceBubbles(card, data.x, data.y);
-            canvas.appendChild(card);
-        }
-
-        function addSourceBubbles(parent, x, y) {
-            const sources = ['Wiki', 'ArXiv', 'Nature'];
-            sources.forEach((src, i) => {
-                const angle = (i / sources.length) * Math.PI * 2;
-                const radius = 220;
-                const bubble = document.createElement('div');
-                bubble.className = 'source-bubble';
-                bubble.innerText = src;
-                bubble.style.left = `${x + Math.cos(angle) * radius - 24}px`;
-                bubble.style.top = `${y + Math.sin(angle) * radius - 24}px`;
-                bubble.dataset.step = currentStep;
-                canvas.appendChild(bubble);
-            });
-        }
-
-        function createLink(sourceId, targetId) {
-            links.push({ source: sourceId, target: targetId, step: currentStep });
-            drawLinks();
-        }
-
-        function drawLinks() {
-            svgLayer.innerHTML = '';
-            links.forEach(link => {
-                if (link.step > parseInt(timeline.value)) return;
-
-                const sourceEl = document.getElementById(link.source);
-                const targetEl = document.getElementById(link.target);
-                
-                const sx = parseFloat(sourceEl.dataset.x) + 5000;
-                const sy = parseFloat(sourceEl.dataset.y) + 5000;
-                const tx = parseFloat(targetEl.dataset.x) + 5000;
-                const ty = parseFloat(targetEl.dataset.y) + 5000;
-
-                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute('class', 'connection');
-                
-                // Smooth cubic bezier curve
-                const d = `M ${sx + 170} ${sy} C ${sx + 300} ${sy}, ${tx - 200} ${ty}, ${tx - 170} ${ty}`;
-                path.setAttribute('d', d);
-                svgLayer.appendChild(path);
-            });
-        }
-
-        // Timeline Slider Logic
-        function updateTimeline() {
-            const maxStep = parseInt(timeline.value);
-            stepLabel.innerText = `Step ${maxStep}`;
-            
-            document.querySelectorAll('.card, .source-bubble').forEach(el => {
-                if (parseInt(el.dataset.step) > maxStep) {
-                    el.classList.add('hidden');
-                } else {
-                    el.classList.remove('hidden');
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if(promptInput.value.trim() !== "") {
+                    submitPrompt(promptInput.value);
+                    promptInput.value = '';
+                    promptInput.style.height = '52px';
                 }
-            });
-            drawLinks();
+            }
         }
 
-        // Initialize empty state
-        updateTransform();
+        async function submitPrompt(text) {
+            const chat = document.getElementById('chat');
+            chat.innerHTML = ''; // Clear for demo purposes
+            
+            // Build UI Elements
+            const reasoningWrapper = document.createElement('div');
+            reasoningWrapper.className = 'reasoning-stream';
+            
+            const steps = [
+                { id: 'step1', text: 'Browsing Documentation...' },
+                { id: 'step2', text: 'Comparing Model Outputs...' },
+                { id: 'step3', text: 'Generating Final Answer...' }
+            ];
+
+            steps.forEach(s => {
+                const el = document.createElement('div');
+                el.className = 'step';
+                el.id = s.id;
+                el.innerHTML = `<div class="spinner"></div> ${s.text}`;
+                reasoningWrapper.appendChild(el);
+            });
+            chat.appendChild(reasoningWrapper);
+
+            // Execute Perplexity Logic Simulation
+            for (let i = 0; i < steps.length; i++) {
+                const stepEl = document.getElementById(steps[i].id);
+                stepEl.classList.add('active');
+                await new Promise(r => setTimeout(r, 800)); // Mock delay
+                stepEl.classList.remove('active');
+                stepEl.classList.add('done');
+                stepEl.innerHTML = `✓ ${steps[i].text}`;
+            }
+
+            // Show Citations
+            const citationsWrapper = document.createElement('div');
+            citationsWrapper.className = 'citations';
+            citationsWrapper.innerHTML = `
+                <div class="citation-card"><div class="favicon" style="background: #e24329;"></div> docs.linear.app</div>
+                <div class="citation-card"><div class="favicon" style="background: #fff;"></div> vercel.com/docs</div>
+            `;
+            chat.appendChild(citationsWrapper);
+
+            // Output Container
+            const outputEl = document.createElement('div');
+            outputEl.className = 'output-content';
+            chat.appendChild(outputEl);
+
+            // Mock Data Output based on mode
+            let targetText = "Here is the consolidated response based on the search results. ";
+            let codeBlock = false;
+            let images = false;
+
+            if (currentMode === 'Coder') {
+                targetText = "I found the documentation. Here is the implementation:\n\n";
+                codeBlock = true;
+            } else if (currentMode === 'Artist') {
+                targetText = "Generating visuals based on your prompt...\n\n";
+                images = true;
+            } else {
+                targetText += "The architecture uses edge caching and serverless functions to ensure low-latency model inference across the globe.";
+            }
+
+            // Streaming text effect
+            let i = 0;
+            const streamInterval = setInterval(() => {
+                outputEl.innerHTML += targetText.charAt(i);
+                i++;
+                chat.scrollTop = chat.scrollHeight;
+                if (i >= targetText.length) {
+                    clearInterval(streamInterval);
+                    appendRichContent(chat, codeBlock, images);
+                }
+            }, 15);
+        }
+
+        function appendRichContent(chat, isCode, isImage) {
+            if (isCode) {
+                const pre = document.createElement('pre');
+                pre.innerHTML = `
+<div class="lang-badge">javascript</div>
+<button class="copy-btn" onclick="this.innerText='Copied!';setTimeout(()=>this.innerText='Copy',2000)">Copy</button>
+<code>// Real-time API Simulation
+async function fetchStream() {
+  const response = await ai.query({ stream: true });
+  for await (const chunk of response) {
+    process(chunk);
+  }
+}</code>`;
+                chat.appendChild(pre);
+            }
+            if (isImage) {
+                const gallery = document.createElement('div');
+                gallery.className = 'gallery';
+                gallery.innerHTML = `
+                    <div class="gallery-img" style="background: linear-gradient(45deg, #111, #333);"></div>
+                    <div class="gallery-img" style="background: linear-gradient(45deg, #222, #444);"></div>
+                    <div class="gallery-img" style="background: linear-gradient(45deg, #050505, #2a2a2a);"></div>
+                `;
+                chat.appendChild(gallery);
+            }
+            chat.scrollTop = chat.scrollHeight;
+        }
     </script>
 </body>
 </html>
