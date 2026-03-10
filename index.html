@@ -1,201 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Research Engine</title>
-<style>
-    @import url('https://cdn.jsdelivr.net/npm/geist@1.0.3/dist/fonts/geist-sans/style.css');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial Discovery UI</title>
+    <style>
+        :root {
+            --bg-color: #fdfdfd;
+            --grid-color: #e2e2e2;
+            --card-border: #eaeaea;
+            --text-main: #333;
+            --text-sub: #666;
+            --accent: #0066cc;
+        }
 
-    :root {
-        --bg: #FFFFFF;
-        --fg: #000000;
-        --border: #EAEAEA;
-        --gray: #666666;
-    }
+        body, html {
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+            overflow: hidden; background: var(--bg-color);
+            font-family: system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Geist Sans', sans-serif; }
-    body { background-color: var(--bg); color: var(--fg); line-height: 1.6; display: flex; justify-content: center; min-height: 100vh; }
-    
-    .container { width: 100%; max-width: 1200px; padding: 2rem; display: flex; flex-direction: column; position: relative; }
-    
-    header { display: flex; justify-content: flex-end; padding-bottom: 2rem; }
-    .ai-selector { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 0.875rem; background: var(--bg); }
-    .ai-selector svg { width: 16px; height: 16px; fill: var(--fg); }
-    
-    .search-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: all 0.5s ease; }
-    .search-container.active { flex: 0; justify-content: flex-start; margin-bottom: 2rem; }
-    
-    .search-box { position: relative; width: 100%; max-width: 600px; }
-    .search-input { width: 100%; padding: 1rem 1.5rem; font-size: 1.125rem; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--fg); transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-    .search-input:focus { outline: none; border-color: var(--fg); box-shadow: 0 0 15px rgba(0,0,0,0.08); }
-    
-    .workflow-status { display: none; font-size: 0.875rem; color: var(--gray); margin-top: 1rem; font-family: monospace; }
-    .blinking-cursor::after { content: '|'; animation: blink 1s step-end infinite; }
-    @keyframes blink { 50% { opacity: 0; } }
+        #ui-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 24px; box-sizing: border-box;
+        }
 
-    .results-container { display: none; width: 100%; opacity: 0; transition: opacity 0.5s; }
-    .sources-strip { display: flex; gap: 0.75rem; margin-bottom: 2rem; overflow-x: auto; padding-bottom: 0.5rem; }
-    .source-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.75rem; white-space: nowrap; }
-    .source-card div { width: 12px; height: 12px; background: var(--fg); border-radius: 2px; }
+        .panel {
+            pointer-events: auto; background: rgba(255, 255, 255, 0.85);
+            padding: 16px; border-radius: 16px; border: 1px solid var(--card-border);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06); backdrop-filter: blur(12px);
+        }
 
-    .layout-grid { display: grid; grid-template-columns: 1fr 300px; gap: 3rem; }
-    
-    .main-response { font-size: 1rem; position: relative; }
-    .citation { display: inline-flex; justify-content: center; align-items: center; font-size: 0.7rem; vertical-align: super; background: var(--fg); color: var(--bg); border-radius: 50%; width: 14px; height: 14px; margin: 0 2px; cursor: pointer; position: relative; font-family: monospace; }
-    
-    .tooltip { visibility: hidden; width: 200px; background-color: var(--fg); color: var(--bg); text-align: left; padding: 0.5rem; border-radius: 4px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -100px; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s; font-family: 'Geist Sans', sans-serif; white-space: normal;}
-    .citation:hover .tooltip { visibility: visible; opacity: 1; }
+        #search-container { width: 480px; margin: 0 auto; display: flex; gap: 12px; }
+        #search-input { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; outline: none; transition: border 0.2s; }
+        #search-input:focus { border-color: var(--accent); }
+        button { padding: 12px 20px; background: var(--text-main); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        
+        #timeline-container { width: 300px; display: flex; flex-direction: column; gap: 8px; }
+        #timeline { width: 100%; cursor: pointer; }
+        .timeline-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-sub); font-weight: 500; }
 
-    .evidence-panel { border-left: 1px solid var(--border); padding-left: 1.5rem; position: sticky; top: 2rem; height: max-content; }
-    .evidence-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
-    .evidence-item { font-size: 0.825rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; }
-    .evidence-number { font-weight: bold; }
+        #viewport { width: 100vw; height: 100vh; position: absolute; cursor: grab; }
+        #viewport:active { cursor: grabbing; }
+        
+        #canvas {
+            position: absolute; top: 50%; left: 50%;
+            width: 0; height: 0; overflow: visible;
+        }
 
-    .actions { display: flex; gap: 1rem; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1rem; }
-    .btn { padding: 0.5rem 1rem; font-size: 0.875rem; cursor: pointer; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); transition: all 0.2s; }
-    .btn:hover { background: var(--fg); color: var(--bg); }
-</style>
+        .grid {
+            position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
+            background-image: radial-gradient(var(--grid-color) 2px, transparent 2px);
+            background-size: 40px 40px; pointer-events: none;
+        }
+
+        svg {
+            position: absolute; top: -5000px; left: -5000px; width: 10000px; height: 10000px;
+            pointer-events: none; overflow: visible;
+        }
+        
+        path.connection {
+            stroke: #d0d0d0; stroke-width: 2.5px; fill: none;
+            stroke-dasharray: 6; animation: dash 20s linear infinite;
+        }
+
+        @keyframes dash { to { stroke-dashoffset: -100; } }
+
+        .card {
+            position: absolute; width: 340px; background: white;
+            border: 1px solid var(--card-border); border-radius: 20px; padding: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.05); pointer-events: auto; cursor: default;
+            transform: translate(-50%, -50%); transition: opacity 0.3s ease;
+        }
+
+        .card.hidden { opacity: 0; pointer-events: none; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-weight: 700; font-size: 18px; color: var(--text-main); margin: 0; }
+        .model-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: #f0f0f0; color: #555; font-weight: 600; letter-spacing: 0.5px; }
+        .card-content { font-size: 15px; color: var(--text-sub); line-height: 1.6; margin: 0; }
+        
+        .citation {
+            color: var(--accent); cursor: pointer; text-decoration: none;
+            background: rgba(0, 102, 204, 0.1); padding: 2px 6px; border-radius: 6px;
+            font-weight: 500; transition: background 0.2s; pointer-events: auto;
+        }
+        .citation:hover { background: rgba(0, 102, 204, 0.2); }
+
+        .source-bubble {
+            position: absolute; width: 48px; height: 48px; background: white;
+            border: 1px solid var(--card-border); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600; color: var(--text-sub);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); pointer-events: auto;
+            animation: float 4s ease-in-out infinite;
+        }
+        .source-bubble:nth-child(even) { animation-delay: -2s; animation-duration: 5s; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="ai-selector">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5h-13L12 6.5z"/></svg>
-            Synthesis: Claude 3.5 & GPT-4o
+    <div id="ui-layer">
+        <div id="search-container" class="panel">
+            <input type="text" id="search-input" placeholder="Ask the spatial canvas..." value="Explain Quantum Computing">
+            <button onclick="handleSearch()">Search</button>
         </div>
-    </header>
-
-    <div class="search-container" id="searchState">
-        <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="Enter research query..." autocomplete="off">
-        </div>
-        <div class="workflow-status" id="workflowStatus">
-            <span id="workflowText"></span><span class="blinking-cursor"></span>
+        
+        <div id="timeline-container" class="panel">
+            <div class="timeline-labels">
+                <span>Origin</span>
+                <span id="step-label">Step 1</span>
+            </div>
+            <input type="range" id="timeline" min="1" max="1" value="1" oninput="updateTimeline()">
         </div>
     </div>
 
-    <div class="results-container" id="resultsContainer">
-        <div class="sources-strip" id="sourcesStrip">
-            </div>
-        <div class="layout-grid">
-            <div class="main-response">
-                <div id="responseContent"></div>
-                <div class="actions" style="display:none;" id="actionButtons">
-                    <button class="btn" onclick="copyMarkdown()">Copy as Markdown</button>
-                    <button class="btn" onclick="location.reload()">Re-generate with reasoning</button>
-                </div>
-            </div>
-            <aside class="evidence-panel">
-                <div class="evidence-title">Active Citations</div>
-                <div id="evidenceList"></div>
-            </aside>
+    <div id="viewport">
+        <div id="canvas">
+            <div class="grid"></div>
+            <svg id="svg-layer"></svg>
         </div>
     </div>
-</div>
 
-<script>
-    const searchInput = document.getElementById('searchInput');
-    const searchState = document.getElementById('searchState');
-    const workflowStatus = document.getElementById('workflowStatus');
-    const workflowText = document.getElementById('workflowText');
-    const resultsContainer = document.getElementById('resultsContainer');
-    const responseContent = document.getElementById('responseContent');
-    const sourcesStrip = document.getElementById('sourcesStrip');
-    const evidenceList = document.getElementById('evidenceList');
-    const actionButtons = document.getElementById('actionButtons');
+    <script>
+        const viewport = document.getElementById('viewport');
+        const canvas = document.getElementById('canvas');
+        const svgLayer = document.getElementById('svg-layer');
+        const searchInput = document.getElementById('search-input');
+        const timeline = document.getElementById('timeline');
+        const stepLabel = document.getElementById('step-label');
 
-    const sourcesData = [
-        { id: 1, domain: "nature.com", snippet: "Recent advancements in quantum field structures." },
-        { id: 2, domain: "arxiv.org", snippet: "Algorithmic optimization for neural synthesis." },
-        { id: 3, domain: "mit.edu", snippet: "Economic models of AGI integration." },
-        { id: 4, domain: "bloomberg.com", snippet: "Market analysis of high-end corporate AI." }
-    ];
-
-    const responseText = "The synthesis of available data indicates a paradigm shift in corporate intelligence architecture. According to recent academic models, agentic workflows reduce operational latency by 40% [1]. Furthermore, neural optimization protocols allow for real-time data retrieval across distributed ledgers [2]. \n\nEconomic implications suggest that integrating dual-model synthesis (e.g., Claude and GPT) yields higher baseline accuracy for complex queries [3]. Market indicators confirm sustained investment in these high-end search modalities [4].";
-
-    searchInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter' && this.value.trim() !== '') {
-            startWorkflow();
-        }
-    });
-
-    async function startWorkflow() {
-        searchInput.disabled = true;
-        workflowStatus.style.display = 'block';
-        searchState.classList.add('active');
-
-        const steps = [
-            "Step 1: Planning Search Strategy...",
-            "Step 2: Retrieving 12 Sources...",
-            "Step 3: Synthesizing with Claude 3.5 & GPT-4o..."
-        ];
-
-        for (let step of steps) {
-            workflowText.textContent = step;
-            await new Promise(r => setTimeout(r, 1200));
-        }
-
-        workflowStatus.style.display = 'none';
-        showResults();
-    }
-
-    function showResults() {
-        resultsContainer.style.display = 'block';
-        setTimeout(() => resultsContainer.style.opacity = '1', 50);
-
-        // Generate Source Cards
-        for(let i=1; i<=12; i++) {
-            const domain = sourcesData[i%4].domain;
-            sourcesStrip.innerHTML += `<div class="source-card"><div></div> ${domain}</div>`;
-        }
-
-        streamText();
-    }
-
-    async function streamText() {
-        let currentHTML = "";
-        let i = 0;
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
         
-        while (i < responseText.length) {
-            if (responseText[i] === '[' && !isNaN(responseText[i+1])) {
-                const id = responseText[i+1];
-                const source = sourcesData.find(s => s.id == id);
-                currentHTML += `<span class="citation">${id}<span class="tooltip">${source.domain}: ${source.snippet}</span></span>`;
-                addEvidence(source);
-                i += 3; // skip [X]
-            } else if (responseText[i] === '\n') {
-                currentHTML += '<br>';
-                i++;
-            } else {
-                currentHTML += responseText[i];
-                i++;
-            }
-            responseContent.innerHTML = currentHTML + '<span class="blinking-cursor"></span>';
-            await new Promise(r => setTimeout(r, 15));
-        }
-        
-        responseContent.innerHTML = currentHTML; // Remove cursor
-        actionButtons.style.display = 'flex';
-    }
+        let currentStep = 0;
+        const nodes = [];
+        const links = [];
 
-    function addEvidence(source) {
-        if(!document.getElementById(`ev-${source.id}`)) {
-            evidenceList.innerHTML += `
-                <div class="evidence-item" id="ev-${source.id}">
-                    <span class="evidence-number">[${source.id}]</span>
-                    <span><strong>${source.domain}</strong><br>${source.snippet}</span>
+        // Canvas Panning
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.card') || e.target.closest('.panel')) return;
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+            updateTransform();
+        });
+
+        window.addEventListener('mouseup', () => isDragging = false);
+
+        // Canvas Zooming
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSensitivity = 0.001;
+            const delta = -e.deltaY * zoomSensitivity;
+            const newScale = Math.min(Math.max(0.2, scale + delta), 3);
+            scale = newScale;
+            updateTransform();
+        }, { passive: false });
+
+        function updateTransform() {
+            canvas.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+
+        // Search & Node Generation Logic
+        function handleSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+            currentStep++;
+            timeline.max = currentStep;
+            timeline.value = currentStep;
+            updateTimeline();
+
+            createNode({
+                id: `node-${Date.now()}`,
+                x: -panX / scale, 
+                y: -panY / scale,
+                title: query,
+                content: `Quantum computing utilizes quantum mechanics to solve complex problems faster than classical computers. <span class="citation" onclick="handleCitation(event, '${Date.now()}', 'text')">[1] Core Concepts</span> <span class="citation" onclick="handleCitation(event, '${Date.now()}', 'image')">[2] Architecture</span>`,
+                model: 'Gemini Pro',
+                step: currentStep,
+                type: 'main'
+            });
+            searchInput.value = '';
+        }
+
+        function handleCitation(e, parentId, type) {
+            const parentEl = e.target.closest('.card');
+            const pX = parseFloat(parentEl.dataset.x);
+            const pY = parseFloat(parentEl.dataset.y);
+            
+            currentStep++;
+            timeline.max = currentStep;
+            timeline.value = currentStep;
+            updateTimeline();
+
+            const childId = `node-${Date.now()}`;
+            const yOffset = (Math.random() - 0.5) * 300;
+            
+            const childData = {
+                id: childId,
+                x: pX + 450,
+                y: pY + yOffset,
+                title: type === 'text' ? 'Superposition Detail' : 'Qubit Diagram',
+                content: type === 'text' 
+                    ? 'Superposition allows qubits to exist in multiple states simultaneously, expanding processing capacity.' 
+                    : '*(Visual preview generated by image model)*<br><br>DALL-E rendered diagram of a quantum circuit.',
+                model: type === 'text' ? 'GPT-4' : 'DALL-E 3',
+                step: currentStep,
+                type: 'child'
+            };
+
+            createNode(childData);
+            createLink(parentEl.id, childId);
+        }
+
+        function createNode(data) {
+            nodes.push(data);
+            
+            const card = document.createElement('div');
+            card.className = `card step-${data.step}`;
+            card.id = data.id;
+            card.dataset.step = data.step;
+            card.dataset.x = data.x;
+            card.dataset.y = data.y;
+            card.style.left = `${data.x}px`;
+            card.style.top = `${data.y}px`;
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${data.title}</h3>
+                    <span class="model-badge">${data.model}</span>
                 </div>
+                <p class="card-content">${data.content}</p>
             `;
-        }
-    }
 
-    function copyMarkdown() {
-        const text = responseContent.innerText;
-        navigator.clipboard.writeText(text);
-        alert('Copied to clipboard');
-    }
-</script>
+            if (data.type === 'main') addSourceBubbles(card, data.x, data.y);
+            canvas.appendChild(card);
+        }
+
+        function addSourceBubbles(parent, x, y) {
+            const sources = ['Wiki', 'ArXiv', 'Nature'];
+            sources.forEach((src, i) => {
+                const angle = (i / sources.length) * Math.PI * 2;
+                const radius = 220;
+                const bubble = document.createElement('div');
+                bubble.className = 'source-bubble';
+                bubble.innerText = src;
+                bubble.style.left = `${x + Math.cos(angle) * radius - 24}px`;
+                bubble.style.top = `${y + Math.sin(angle) * radius - 24}px`;
+                bubble.dataset.step = currentStep;
+                canvas.appendChild(bubble);
+            });
+        }
+
+        function createLink(sourceId, targetId) {
+            links.push({ source: sourceId, target: targetId, step: currentStep });
+            drawLinks();
+        }
+
+        function drawLinks() {
+            svgLayer.innerHTML = '';
+            links.forEach(link => {
+                if (link.step > parseInt(timeline.value)) return;
+
+                const sourceEl = document.getElementById(link.source);
+                const targetEl = document.getElementById(link.target);
+                
+                const sx = parseFloat(sourceEl.dataset.x) + 5000;
+                const sy = parseFloat(sourceEl.dataset.y) + 5000;
+                const tx = parseFloat(targetEl.dataset.x) + 5000;
+                const ty = parseFloat(targetEl.dataset.y) + 5000;
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute('class', 'connection');
+                
+                // Smooth cubic bezier curve
+                const d = `M ${sx + 170} ${sy} C ${sx + 300} ${sy}, ${tx - 200} ${ty}, ${tx - 170} ${ty}`;
+                path.setAttribute('d', d);
+                svgLayer.appendChild(path);
+            });
+        }
+
+        // Timeline Slider Logic
+        function updateTimeline() {
+            const maxStep = parseInt(timeline.value);
+            stepLabel.innerText = `Step ${maxStep}`;
+            
+            document.querySelectorAll('.card, .source-bubble').forEach(el => {
+                if (parseInt(el.dataset.step) > maxStep) {
+                    el.classList.add('hidden');
+                } else {
+                    el.classList.remove('hidden');
+                }
+            });
+            drawLinks();
+        }
+
+        // Initialize empty state
+        updateTransform();
+    </script>
 </body>
 </html>
