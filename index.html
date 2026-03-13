@@ -1,247 +1,335 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Nexus | Foundation Models</title>
+    <title>NeuralRoute | Unified AI API</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
         :root {
-            --bg-dark: #030303;
-            --bg-panel: rgba(20, 20, 20, 0.6);
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-tertiary: #666666;
-            --accent-glow: radial-gradient(circle at 50% 0%, rgba(70, 100, 255, 0.15), transparent 60%);
-            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --bg-base: #030303;
+            --bg-surface: rgba(15, 15, 15, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --accent: #ffffff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            background-image: var(--accent-glow);
-            background-repeat: no-repeat;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        h1, h2, h3, .brand { font-family: 'Space Grotesk', sans-serif; }
+        canvas#webgl {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
-
-        /* Header & Nav */
-        header { padding: 4rem 0 2rem; border-bottom: 1px solid var(--border-subtle); }
-        .hero { text-align: left; max-width: 800px; margin-bottom: 3rem; }
-        .hero h1 { font-size: 4rem; font-weight: 400; letter-spacing: -0.05em; line-height: 1.1; margin-bottom: 1.5rem; }
-        .hero p { font-size: 1.2rem; color: var(--text-secondary); font-weight: 300; }
-
-        /* Controls: Search & Filters */
-        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; padding-top: 2rem; }
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; width: 100%;
+            padding: 1.5rem 3rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(3, 3, 3, 0.5);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+        }
         
-        .search-box { flex: 1; min-width: 300px; max-width: 500px; }
-        .search-box input {
-            width: 100%; padding: 1rem 1.5rem;
-            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-            border-radius: 8px; color: var(--text-primary); font-size: 1rem;
-            font-family: 'Inter', sans-serif; transition: var(--transition);
-        }
-        .search-box input:focus { outline: none; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+        .logo { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.05em; }
+        .nav-links { display: flex; gap: 2.5rem; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--text-main); }
 
-        .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .filter-btn {
-            background: transparent; border: 1px solid var(--border-subtle);
-            color: var(--text-secondary); padding: 0.6rem 1.2rem;
-            border-radius: 20px; cursor: pointer; font-size: 0.9rem;
-            transition: var(--transition); font-family: 'Space Grotesk', sans-serif;
-        }
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--text-primary); color: var(--bg-dark); border-color: var(--text-primary);
-        }
+        /* Typography & Layout */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        section { padding: 8rem 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        
+        h1 { font-size: 5vw; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 2rem; }
+        h2 { font-size: 3rem; font-weight: 400; letter-spacing: -0.03em; margin-bottom: 1.5rem; }
+        h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; }
+        p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin-bottom: 2rem; }
 
-        /* Grid Layout */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.5rem; padding-bottom: 6rem; }
+        .tag { display: inline-block; padding: 0.3rem 0.8rem; border: 1px solid var(--border-color); border-radius: 100px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; }
 
-        /* Card Design */
+        /* Grids & Cards */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        
         .card {
-            background: var(--bg-panel); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 2rem; backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; gap: 1.5rem;
-            transition: var(--transition); cursor: crosshair;
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            padding: 2.5rem; border-radius: 8px; backdrop-filter: blur(10px);
         }
-        .card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .card h3 { margin-bottom: 0.5rem; }
+        .card p { font-size: 0.95rem; margin-bottom: 0; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .model-name { font-size: 1.8rem; font-weight: 500; letter-spacing: -0.03em; }
-        .company { font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem; display: block; }
-        .badge { font-size: 0.75rem; padding: 0.3rem 0.8rem; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-secondary); font-family: 'Space Grotesk', sans-serif; }
-
-        .card-body p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; }
-
-        .card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; margin-top: auto; }
-        .meta-item { display: flex; flex-direction: column; gap: 0.3rem; }
-        .meta-label { font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .meta-value { font-size: 0.9rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; }
-
-        .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 0; color: var(--text-tertiary); font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .grid { grid-template-columns: 1fr; }
-            .controls { flex-direction: column; align-items: stretch; }
-            .search-box { max-width: 100%; }
+        /* Code Blocks */
+        pre {
+            background: #0a0a0a; border: 1px solid var(--border-color);
+            padding: 2rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem; color: #a8b2d1; overflow-x: auto;
         }
+        .endpoint { font-family: 'JetBrains Mono', monospace; color: var(--text-main); background: #111; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 4px; display: inline-block; margin-bottom: 1rem; }
+
+        /* Forms */
+        input, textarea {
+            width: 100%; background: transparent; border: 1px solid var(--border-color);
+            padding: 1rem; color: var(--text-main); font-family: 'Inter', sans-serif;
+            border-radius: 4px; margin-bottom: 1rem; outline: none; transition: border-color 0.3s;
+        }
+        input:focus, textarea:focus { border-color: rgba(255,255,255,0.5); }
+        button {
+            background: var(--text-main); color: var(--bg-base); border: none;
+            padding: 1rem 2rem; font-weight: 500; border-radius: 4px; cursor: pointer;
+            transition: opacity 0.3s; font-family: 'Inter', sans-serif;
+        }
+        button:hover { opacity: 0.8; }
+
+        /* Footer */
+        footer { border-top: 1px solid var(--border-color); padding: 4rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* Utility for GSAP */
+        .reveal { opacity: 0; transform: translateY(30px); }
+
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="container hero">
-            <h1>Neural Synthesis Directory</h1>
-            <p>An interactive index of state-of-the-art artificial intelligence models. Explore parameters, context windows, and specific capabilities of the industry's leading systems.</p>
-        </div>
-    </header>
+    <canvas id="webgl"></canvas>
 
-    <main class="container">
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search models, companies, or capabilities...">
-            </div>
-            <div class="filters" id="filters">
-                <button class="filter-btn active" data-filter="all">All Models</button>
-                <button class="filter-btn" data-filter="llm">LLM</button>
-                <button class="filter-btn" data-filter="search">Search & Reasoning</button>
-                <button class="filter-btn" data-filter="code">Coding</button>
-                <button class="filter-btn" data-filter="vision">Vision</button>
-            </div>
+    <nav>
+        <div class="logo">NeuralRoute</div>
+        <div class="nav-links">
+            <a href="#home">Home</a>
+            <a href="#about">Architecture</a>
+            <a href="#api">API Docs</a>
+            <a href="#contact">Enterprise</a>
         </div>
+    </nav>
 
-        <div class="grid" id="modelGrid"></div>
+    <main>
+        <section id="home" class="container">
+            <div class="reveal">
+                <span class="tag">Unified Infrastructure</span>
+                <h1>One API.<br>Every Foundation Model.</h1>
+                <p>Route your requests intelligently across OpenAI, Anthropic, DeepSeek, Google, and Meta models through a single, highly-optimized endpoint. Built for scale, low latency, and redundancy.</p>
+                <button>Generate API Key</button>
+            </div>
+            
+            <div class="grid-3 reveal" style="margin-top: 6rem;">
+                <div class="card">
+                    <h3>DeepSeek V3</h3>
+                    <p>671B MoE. Optimized for complex math and coding tasks.</p>
+                </div>
+                <div class="card">
+                    <h3>Claude 3.5 Sonnet</h3>
+                    <p>Industry-leading intelligence and nuanced cognitive reasoning.</p>
+                </div>
+                <div class="card">
+                    <h3>GPT-4 Omni</h3>
+                    <p>High-speed, multimodal flagship model for general tasks.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="container">
+            <div class="reveal">
+                <h2>Infrastructure & Architecture</h2>
+                <p>We do not just proxy requests. We provide an intelligent routing layer that automatically falls back during downtimes, optimizes context caching, and reduces token costs dynamically.</p>
+            </div>
+            <div class="grid-2 reveal" style="margin-top: 4rem;">
+                <div>
+                    <h3>Dynamic Fallbacks</h3>
+                    <p>When an upstream provider experiences latency spikes or outages, NeuralRoute automatically reroutes your prompt to the nearest capable equivalent model without breaking your application's flow.</p>
+                </div>
+                <div>
+                    <h3>Context Caching</h3>
+                    <p>Our edge nodes maintain secure, encrypted context caches for repetitive system prompts, drastically reducing your operational costs and time-to-first-token (TTFT).</p>
+                </div>
+                <div>
+                    <h3>Zero Data Retention</h3>
+                    <p>Enterprise compliance built-in. We operate entirely in memory. Your prompts and completions are never stored, trained on, or logged beyond temporary telemetry required for routing.</p>
+                </div>
+                <div>
+                    <h3>Unified Billing</h3>
+                    <p>Stop managing multiple vendor invoices. Pay a single unified balance per token, with transparent cost breakdowns per model within our detailed dashboard.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="api" class="container">
+            <div class="reveal">
+                <h2>Developer Documentation</h2>
+                <p>Our API is fully compatible with existing OpenAI SDKs. Simply change the base URL and pass the desired model string.</p>
+            </div>
+            
+            <div class="grid-2 reveal" style="margin-top: 2rem;">
+                <div>
+                    <h3>Authentication</h3>
+                    <p>Authenticate your API requests by including your secret API key in the Authorization header. Do not share or expose this key in client-side code.</p>
+                    <div class="endpoint">POST https://api.neuralroute.com/v1/chat/completions</div>
+                    <p>Supported model parameters: <br><code>anthropic/claude-3.5-sonnet</code><br><code>deepseek/deepseek-coder</code><br><code>meta-llama/llama-3-405b</code></p>
+                </div>
+                <div>
+<pre><code>curl -X POST https://api.neuralroute.com/v1/chat/completions \
+  -H "Authorization: Bearer nr_live_xxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "anthropic/claude-3.5-sonnet",
+    "messages": [
+      {"role": "system", "content": "You are a backend expert."},
+      {"role": "user", "content": "Explain load balancing."}
+    ],
+    "temperature": 0.2
+  }'</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="container">
+            <div class="grid-2 reveal">
+                <div>
+                    <h2>Enterprise Support</h2>
+                    <p>Require custom SLA, dedicated throughput, or private VPC peering? Our engineering team works directly with enterprise clients to build bespoke routing solutions.</p>
+                    <br>
+                    <h3>Global Infrastructure</h3>
+                    <p>Operating across 14 global regions to ensure sub-20ms edge latency for request routing.</p>
+                </div>
+                <div class="card">
+                    <form onsubmit="event.preventDefault();">
+                        <input type="text" placeholder="Company Name" required>
+                        <input type="email" placeholder="Work Email" required>
+                        <textarea rows="4" placeholder="Expected volume and specific requirements..." required></textarea>
+                        <button type="submit" style="width: 100%;">Contact Engineering</button>
+                    </form>
+                </div>
+            </div>
+        </section>
     </main>
 
+    <footer>
+        <div class="container">
+            <p>NeuralRoute Systems © 2026. Data Policy — Terms of Service — Status</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+
     <script>
-        const aiModels = [
-            {
-                name: "GPT-4o", company: "OpenAI", category: "llm", type: "Omni-Modal LLM",
-                desc: "The flagship model unifying text, voice, and vision. Extremely fast inference with deep contextual understanding and advanced reasoning capabilities.",
-                context: "128k tokens", params: "Undisclosed", access: "API / ChatGPT"
-            },
-            {
-                name: "Claude 3.5 Sonnet", company: "Anthropic", category: "llm", type: "Cognitive Engine",
-                desc: "Industry-leading intelligence with exceptional nuance. Excels in complex multi-step instructions, creative writing, and high-level structural analysis.",
-                context: "200k tokens", params: "Undisclosed", access: "API / Claude"
-            },
-            {
-                name: "Gemini 1.5 Pro", company: "Google DeepMind", category: "llm", type: "MoE Architecture",
-                desc: "Features a massive context window capable of processing entire repositories of code, extensive documents, and hours of native video/audio streams simultaneously.",
-                context: "1M - 2M tokens", params: "Undisclosed", access: "API / Vertex AI"
-            },
-            {
-                name: "DeepSeek-V3", company: "DeepSeek", category: "code", type: "Open-Weight MoE",
-                desc: "Highly efficient mixture-of-experts model disrupting the open-source space. Offers top-tier mathematical reasoning and coding proficiency at a fraction of the compute.",
-                context: "64k tokens", params: "671B (37B active)", access: "Open Weights / API"
-            },
-            {
-                name: "Perplexity Pro", company: "Perplexity AI", category: "search", type: "Answer Engine",
-                desc: "Not just a raw model, but a deep-research pipeline that grounds conversational responses in real-time, cited web data for unparalleled factual accuracy.",
-                context: "Dynamic", params: "Routing System", access: "Web / API"
-            },
-            {
-                name: "Llama 3.1 405B", company: "Meta", category: "llm", type: "Open Foundation",
-                desc: "The largest open-weights model to date. Rivals closed-source giants in general knowledge, steerability, and robust tool-use generation.",
-                context: "128k tokens", params: "405 Billion", access: "Open Weights"
-            },
-            {
-                name: "Midjourney v6", company: "Midjourney", category: "vision", type: "Diffusion Model",
-                desc: "The absolute standard for aesthetic text-to-image synthesis. Features hyper-realistic textures, accurate typography rendering, and profound prompt comprehension.",
-                context: "Text Prompts", params: "Latent Diffusion", access: "Discord / Web"
-            },
-            {
-                name: "DeepSeek Coder V2", company: "DeepSeek", category: "code", type: "Code LLM",
-                desc: "Specialized in software development, algorithm design, and debugging. Trained extensively on varied programming languages and repository structures.",
-                context: "128k tokens", params: "236B (21B active)", access: "Open Weights"
-            },
-            {
-                name: "Mistral Large 2", company: "Mistral AI", category: "llm", type: "Dense LLM",
-                desc: "European-based flagship model optimized for multi-lingual tasks, strict JSON formatting, and complex logical deductions with high efficiency.",
-                context: "128k tokens", params: "123 Billion", access: "API / Le Chat"
-            }
-        ];
+        // 1. Smooth Scrolling Setup (Lenis)
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            smooth: true
+        });
 
-        const grid = document.getElementById('modelGrid');
-        const searchInput = document.getElementById('searchInput');
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        let currentFilter = 'all';
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
+        }
+        requestAnimationFrame(raf);
 
-        function renderCards(query = '') {
-            grid.innerHTML = '';
-            
-            const filteredData = aiModels.filter(model => {
-                const matchesSearch = model.name.toLowerCase().includes(query) || 
-                                      model.company.toLowerCase().includes(query) || 
-                                      model.desc.toLowerCase().includes(query);
-                const matchesFilter = currentFilter === 'all' || model.category === currentFilter;
-                return matchesSearch && matchesFilter;
+        // 2. GSAP Scroll Animations
+        gsap.registerPlugin(ScrollTrigger);
+        
+        const reveals = document.querySelectorAll('.reveal');
+        reveals.forEach((element) => {
+            gsap.to(element, {
+                scrollTrigger: {
+                    trigger: element,
+                    start: "top 85%",
+                    toggleActions: "play none none reverse"
+                },
+                y: 0,
+                opacity: 1,
+                duration: 1,
+                ease: "power3.out"
             });
+        });
 
-            if (filteredData.length === 0) {
-                grid.innerHTML = `<div class="empty-state">No models found matching your criteria.</div>`;
-                return;
-            }
+        // 3. Three.js Abstract Background (Non-toy, professional AI vibe)
+        const canvas = document.querySelector('#webgl');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
 
-            filteredData.forEach(model => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div>
-                            <div class="model-name">${model.name}</div>
-                            <span class="company">${model.company}</span>
-                        </div>
-                        <span class="badge">${model.type}</span>
-                    </div>
-                    <div class="card-body">
-                        <p>${model.desc}</p>
-                    </div>
-                    <div class="card-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Context Window</span>
-                            <span class="meta-value">${model.context}</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Parameters</span>
-                            <span class="meta-value">${model.params}</span>
-                        </div>
-                        <div class="meta-item" style="grid-column: 1 / -1; margin-top: 0.5rem;">
-                            <span class="meta-label">Distribution</span>
-                            <span class="meta-value">${model.access}</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        // Create abstract particles / nodes
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 700;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 100;
         }
 
-        searchInput.addEventListener('input', (e) => {
-            renderCards(e.target.value.toLowerCase());
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.15,
+            color: 0x888888,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
         });
 
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.getAttribute('data-filter');
-                renderCards(searchInput.value.toLowerCase());
-            });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        // Subtle Mouse Interaction
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
         });
 
-        // Initialize
-        renderCards();
+        // Scroll Interaction for Three.js
+        window.addEventListener('scroll', () => {
+            particlesMesh.rotation.x = window.scrollY * 0.0005;
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            targetX = mouseX * 0.5;
+            targetY = mouseY * 0.5;
+
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.0005;
+            
+            // Camera subtle follow
+            camera.position.x += (targetX - camera.position.x) * 0.02;
+            camera.position.y += (targetY - camera.position.y) * 0.02;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsive handling
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
-
