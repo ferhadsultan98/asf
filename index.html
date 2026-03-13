@@ -3,236 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neural Directory | AI Models</title>
+    <title>AI Nexus | Foundation Models</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap');
+
         :root {
-            --bg-base: #050505;
-            --bg-surface: #111111;
-            --text-main: #f5f5f5;
-            --text-muted: #888888;
-            --accent: #d4af37; /* Soft gold/metallic accent for premium feel */
-            --accent-glow: rgba(212, 175, 55, 0.15);
+            --bg-dark: #030303;
+            --bg-panel: rgba(20, 20, 20, 0.6);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-tertiary: #666666;
+            --accent-glow: radial-gradient(circle at 50% 0%, rgba(70, 100, 255, 0.15), transparent 60%);
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            line-height: 1.6;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            background-image: var(--accent-glow);
+            background-repeat: no-repeat;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
+        h1, h2, h3, .brand { font-family: 'Space Grotesk', sans-serif; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+
+        /* Header & Nav */
+        header { padding: 4rem 0 2rem; border-bottom: 1px solid var(--border-subtle); }
+        .hero { text-align: left; max-width: 800px; margin-bottom: 3rem; }
+        .hero h1 { font-size: 4rem; font-weight: 400; letter-spacing: -0.05em; line-height: 1.1; margin-bottom: 1.5rem; }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); font-weight: 300; }
+
+        /* Controls: Search & Filters */
+        .controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 3rem; padding-top: 2rem; }
+        
+        .search-box { flex: 1; min-width: 300px; max-width: 500px; }
+        .search-box input {
+            width: 100%; padding: 1rem 1.5rem;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
+            border-radius: 8px; color: var(--text-primary); font-size: 1rem;
+            font-family: 'Inter', sans-serif; transition: var(--transition);
+        }
+        .search-box input:focus { outline: none; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.06); }
+
+        .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .filter-btn {
+            background: transparent; border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); padding: 0.6rem 1.2rem;
+            border-radius: 20px; cursor: pointer; font-size: 0.9rem;
+            transition: var(--transition); font-family: 'Space Grotesk', sans-serif;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--text-primary); color: var(--bg-dark); border-color: var(--text-primary);
         }
 
-        header {
-            padding: 8rem 0 4rem;
-            text-align: center;
-            background: radial-gradient(circle at 50% 0%, #1a1a1a 0%, var(--bg-base) 70%);
-        }
+        /* Grid Layout */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.5rem; padding-bottom: 6rem; }
 
-        h1 {
-            font-size: 4.5rem;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-            margin-bottom: 1rem;
-            background: linear-gradient(180deg, #ffffff 0%, #888888 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 3rem;
-            font-weight: 300;
-        }
-
-        .search-wrapper {
-            max-width: 500px;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        input {
-            width: 100%;
-            padding: 1.2rem 2rem;
-            background: var(--bg-surface);
-            border: 1px solid #222;
-            border-radius: 100px;
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.4s ease;
-        }
-
-        input:focus {
-            border-color: #444;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
-        }
-
-        input::placeholder { color: #555; }
-
-        .models-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-            padding: 2rem 0 6rem;
-        }
-
+        /* Card Design */
         .card {
-            background: var(--bg-surface);
-            border: 1px solid #1a1a1a;
-            border-radius: 16px;
-            padding: 2.5rem;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 240px;
+            background: var(--bg-panel); border: 1px solid var(--border-subtle);
+            border-radius: 12px; padding: 2rem; backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; gap: 1.5rem;
+            transition: var(--transition); cursor: crosshair;
         }
+        .card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
 
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 16px;
-            box-shadow: inset 0 0 0 1px transparent;
-            transition: box-shadow 0.4s ease;
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .model-name { font-size: 1.8rem; font-weight: 500; letter-spacing: -0.03em; }
+        .company { font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.5rem; display: block; }
+        .badge { font-size: 0.75rem; padding: 0.3rem 0.8rem; border: 1px solid var(--border-subtle); border-radius: 4px; color: var(--text-secondary); font-family: 'Space Grotesk', sans-serif; }
 
-        .card:hover {
-            transform: translateY(-4px);
-            background: #141414;
-        }
+        .card-body p { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; }
 
-        .card:hover::after {
-            box-shadow: inset 0 0 0 1px #333;
-        }
+        .card-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; margin-top: auto; }
+        .meta-item { display: flex; flex-direction: column; gap: 0.3rem; }
+        .meta-label { font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .meta-value { font-size: 0.9rem; color: var(--text-primary); font-family: 'Space Grotesk', sans-serif; }
 
-        .card-header h2 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 0.75rem;
-            letter-spacing: -0.02em;
-        }
-
-        .card-body p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            font-weight: 300;
-        }
-
-        .card-footer {
-            margin-top: 2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .tag {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-weight: 500;
-            color: #fff;
-            background: #222;
-            padding: 0.4rem 1rem;
-            border-radius: 100px;
-        }
-
-        .no-results {
-            text-align: center;
-            grid-column: 1 / -1;
-            padding: 4rem;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
+        .empty-state { grid-column: 1 / -1; text-align: center; padding: 5rem 0; color: var(--text-tertiary); font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
 
         @media (max-width: 768px) {
-            h1 { font-size: 3rem; }
-            header { padding: 6rem 0 3rem; }
-            .container { padding: 0 1.5rem; }
+            .hero h1 { font-size: 2.5rem; }
+            .grid { grid-template-columns: 1fr; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="container">
-            <h1>Intelligence Index</h1>
-            <p class="subtitle">A curated directory of the world's most capable foundation models. Search, compare, and integrate.</p>
-            <div class="search-wrapper">
-                <input type="text" id="search" placeholder="Search by model name or capability...">
-            </div>
+        <div class="container hero">
+            <h1>Neural Synthesis Directory</h1>
+            <p>An interactive index of state-of-the-art artificial intelligence models. Explore parameters, context windows, and specific capabilities of the industry's leading systems.</p>
         </div>
     </header>
 
     <main class="container">
-        <div class="models-grid" id="grid"></div>
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search models, companies, or capabilities...">
+            </div>
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-filter="all">All Models</button>
+                <button class="filter-btn" data-filter="llm">LLM</button>
+                <button class="filter-btn" data-filter="search">Search & Reasoning</button>
+                <button class="filter-btn" data-filter="code">Coding</button>
+                <button class="filter-btn" data-filter="vision">Vision</button>
+            </div>
+        </div>
+
+        <div class="grid" id="modelGrid"></div>
     </main>
 
     <script>
-        const models = [
-            { name: "GPT-4o", desc: "Flagship multimodal engine. Exceptional reasoning across text, voice, and vision streams.", tag: "Multimodal" },
-            { name: "Claude 3.5 Sonnet", desc: "Advanced cognitive architecture. Industry-leading performance in coding and nuanced text analysis.", tag: "Logic / Code" },
-            { name: "Gemini 1.5 Pro", desc: "Massive context processing capability. Analyzes entire codebases and hours of raw video data natively.", tag: "Deep Context" },
-            { name: "Midjourney v6", desc: "High-fidelity image synthesis. Unmatched adherence to complex prompts and hyper-realistic aesthetic generation.", tag: "Vision" },
-            { name: "Sora", desc: "Physics-aware video generation. Creates temporally consistent, high-resolution cinematic sequences from text.", tag: "Generative Video" },
-            { name: "Llama 3", desc: "Highly optimized open-weight architecture. State-of-the-art instruction following and general dialogue.", tag: "Open Source" },
-            { name: "Suno v3", desc: "Parametric audio synthesis. Generates full-fidelity, structurally coherent musical compositions.", tag: "Audio" },
-            { name: "Mistral Large", desc: "Efficient, top-tier reasoning model optimized for multilingual tasks and complex logical operations.", tag: "Text Engine" },
-            { name: "Stable Diffusion 3", desc: "Next-generation latent diffusion model excelling in typography integration and prompt adherence.", tag: "Vision" }
+        const aiModels = [
+            {
+                name: "GPT-4o", company: "OpenAI", category: "llm", type: "Omni-Modal LLM",
+                desc: "The flagship model unifying text, voice, and vision. Extremely fast inference with deep contextual understanding and advanced reasoning capabilities.",
+                context: "128k tokens", params: "Undisclosed", access: "API / ChatGPT"
+            },
+            {
+                name: "Claude 3.5 Sonnet", company: "Anthropic", category: "llm", type: "Cognitive Engine",
+                desc: "Industry-leading intelligence with exceptional nuance. Excels in complex multi-step instructions, creative writing, and high-level structural analysis.",
+                context: "200k tokens", params: "Undisclosed", access: "API / Claude"
+            },
+            {
+                name: "Gemini 1.5 Pro", company: "Google DeepMind", category: "llm", type: "MoE Architecture",
+                desc: "Features a massive context window capable of processing entire repositories of code, extensive documents, and hours of native video/audio streams simultaneously.",
+                context: "1M - 2M tokens", params: "Undisclosed", access: "API / Vertex AI"
+            },
+            {
+                name: "DeepSeek-V3", company: "DeepSeek", category: "code", type: "Open-Weight MoE",
+                desc: "Highly efficient mixture-of-experts model disrupting the open-source space. Offers top-tier mathematical reasoning and coding proficiency at a fraction of the compute.",
+                context: "64k tokens", params: "671B (37B active)", access: "Open Weights / API"
+            },
+            {
+                name: "Perplexity Pro", company: "Perplexity AI", category: "search", type: "Answer Engine",
+                desc: "Not just a raw model, but a deep-research pipeline that grounds conversational responses in real-time, cited web data for unparalleled factual accuracy.",
+                context: "Dynamic", params: "Routing System", access: "Web / API"
+            },
+            {
+                name: "Llama 3.1 405B", company: "Meta", category: "llm", type: "Open Foundation",
+                desc: "The largest open-weights model to date. Rivals closed-source giants in general knowledge, steerability, and robust tool-use generation.",
+                context: "128k tokens", params: "405 Billion", access: "Open Weights"
+            },
+            {
+                name: "Midjourney v6", company: "Midjourney", category: "vision", type: "Diffusion Model",
+                desc: "The absolute standard for aesthetic text-to-image synthesis. Features hyper-realistic textures, accurate typography rendering, and profound prompt comprehension.",
+                context: "Text Prompts", params: "Latent Diffusion", access: "Discord / Web"
+            },
+            {
+                name: "DeepSeek Coder V2", company: "DeepSeek", category: "code", type: "Code LLM",
+                desc: "Specialized in software development, algorithm design, and debugging. Trained extensively on varied programming languages and repository structures.",
+                context: "128k tokens", params: "236B (21B active)", access: "Open Weights"
+            },
+            {
+                name: "Mistral Large 2", company: "Mistral AI", category: "llm", type: "Dense LLM",
+                desc: "European-based flagship model optimized for multi-lingual tasks, strict JSON formatting, and complex logical deductions with high efficiency.",
+                context: "128k tokens", params: "123 Billion", access: "API / Le Chat"
+            }
         ];
 
-        const grid = document.getElementById('grid');
-        const searchInput = document.getElementById('search');
+        const grid = document.getElementById('modelGrid');
+        const searchInput = document.getElementById('searchInput');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        let currentFilter = 'all';
 
-        function render(filterText = '') {
-            const filtered = models.filter(m => 
-                m.name.toLowerCase().includes(filterText) || 
-                m.desc.toLowerCase().includes(filterText) ||
-                m.tag.toLowerCase().includes(filterText)
-            );
+        function renderCards(query = '') {
+            grid.innerHTML = '';
+            
+            const filteredData = aiModels.filter(model => {
+                const matchesSearch = model.name.toLowerCase().includes(query) || 
+                                      model.company.toLowerCase().includes(query) || 
+                                      model.desc.toLowerCase().includes(query);
+                const matchesFilter = currentFilter === 'all' || model.category === currentFilter;
+                return matchesSearch && matchesFilter;
+            });
 
-            if (filtered.length === 0) {
-                grid.innerHTML = '<div class="no-results">No intelligence models found matching your criteria.</div>';
+            if (filteredData.length === 0) {
+                grid.innerHTML = `<div class="empty-state">No models found matching your criteria.</div>`;
                 return;
             }
 
-            grid.innerHTML = filtered.map(m => `
-                <div class="card">
+            filteredData.forEach(model => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
                     <div class="card-header">
-                        <h2>${m.name}</h2>
+                        <div>
+                            <div class="model-name">${model.name}</div>
+                            <span class="company">${model.company}</span>
+                        </div>
+                        <span class="badge">${model.type}</span>
                     </div>
                     <div class="card-body">
-                        <p>${m.desc}</p>
+                        <p>${model.desc}</p>
                     </div>
-                    <div class="card-footer">
-                        <span class="tag">${m.tag}</span>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Context Window</span>
+                            <span class="meta-value">${model.context}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Parameters</span>
+                            <span class="meta-value">${model.params}</span>
+                        </div>
+                        <div class="meta-item" style="grid-column: 1 / -1; margin-top: 0.5rem;">
+                            <span class="meta-label">Distribution</span>
+                            <span class="meta-value">${model.access}</span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+                grid.appendChild(card);
+            });
         }
 
         searchInput.addEventListener('input', (e) => {
-            render(e.target.value.toLowerCase());
+            renderCards(e.target.value.toLowerCase());
         });
 
-        // Initial render
-        render();
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.getAttribute('data-filter');
+                renderCards(searchInput.value.toLowerCase());
+            });
+        });
+
+        // Initialize
+        renderCards();
     </script>
 </body>
 </html>
