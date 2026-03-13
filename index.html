@@ -3,365 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal AI Hub</title>
+    <title>Neural Directory | AI Models</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+        
         :root {
-            --bg: #000000;
-            --text-main: #ededed;
+            --bg-base: #050505;
+            --bg-surface: #111111;
+            --text-main: #f5f5f5;
             --text-muted: #888888;
-            --border: #333333;
-            --glow: 0 0 15px rgba(51, 51, 51, 0.4);
-            --accent: #ffffff;
+            --accent: #d4af37; /* Soft gold/metallic accent for premium feel */
+            --accent-glow: rgba(212, 175, 55, 0.15);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
         body {
-            font-family: 'Geist', sans-serif;
-            background-color: var(--bg);
+            background-color: var(--bg-base);
             color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 260px;
-            border-right: 1px solid var(--border);
-            padding: 24px;
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 24px;
-            background: #050505;
         }
-        
-        .nav-group { display: flex; flex-direction: column; gap: 8px; }
-        .nav-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; }
-        
-        .btn {
-            background: transparent;
-            border: 1px solid transparent;
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        header {
+            padding: 8rem 0 4rem;
+            text-align: center;
+            background: radial-gradient(circle at 50% 0%, #1a1a1a 0%, var(--bg-base) 70%);
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            margin-bottom: 1rem;
+            background: linear-gradient(180deg, #ffffff 0%, #888888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
             color: var(--text-muted);
-            padding: 8px 12px;
-            text-align: left;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.2s;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            font-weight: 300;
         }
-        .btn:hover { color: var(--text-main); background: rgba(255,255,255,0.05); }
-        .btn.active { color: var(--text-main); background: rgba(255,255,255,0.1); border-color: var(--border); box-shadow: var(--glow); }
 
-        /* Main Area */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+        .search-wrapper {
+            max-width: 500px;
+            margin: 0 auto;
             position: relative;
         }
 
-        .chat-container {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            max-width: 900px;
-            margin: 0 auto;
+        input {
             width: 100%;
-        }
-
-        /* Input Area */
-        .input-wrapper {
-            padding: 24px;
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .cmd-k-container {
-            position: relative;
-            background: #0a0a0a;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: var(--glow);
-            transition: all 0.3s ease;
-        }
-
-        .cmd-k-container:focus-within { border-color: #555; }
-
-        textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
+            padding: 1.2rem 2rem;
+            background: var(--bg-surface);
+            border: 1px solid #222;
+            border-radius: 100px;
             color: var(--text-main);
-            font-family: inherit;
-            font-size: 15px;
-            padding: 16px;
-            resize: none;
+            font-size: 1rem;
             outline: none;
-            min-height: 52px;
-            line-height: 1.4;
-            transition: height 0.2s;
+            transition: all 0.4s ease;
+        }
+
+        input:focus {
+            border-color: #444;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+        }
+
+        input::placeholder { color: #555; }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 0 6rem;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid #1a1a1a;
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 240px;
         }
 
-        .shortcut-hint {
+        .card::after {
+            content: '';
             position: absolute;
-            right: 16px;
-            top: 16px;
-            font-size: 12px;
-            color: var(--text-muted);
-            pointer-events: none;
-            border: 1px solid var(--border);
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: #111;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 16px;
+            box-shadow: inset 0 0 0 1px transparent;
+            transition: box-shadow 0.4s ease;
         }
 
-        /* Output Elements */
-        .reasoning-stream { font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--border); padding-left: 12px; margin-bottom: 16px;}
-        .step { display: none; align-items: center; gap: 8px; }
-        .step.active { display: flex; color: var(--text-main); }
-        .step.done { display: flex; color: var(--text-muted); }
-        .spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .card:hover {
+            transform: translateY(-4px);
+            background: #141414;
+        }
 
-        .citations { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-        .citation-card {
+        .card:hover::after {
+            box-shadow: inset 0 0 0 1px #333;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.02em;
+        }
+
+        .card-body p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 300;
+        }
+
+        .card-footer {
+            margin-top: 2rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: #111;
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: border-color 0.2s;
         }
-        .citation-card:hover { border-color: #555; }
-        .favicon { width: 14px; height: 14px; background: #333; border-radius: 2px; }
 
-        .output-content { font-size: 15px; line-height: 1.6; }
-        
-        /* Markdown / Code Blocks */
-        pre {
-            background: #0a0a0a;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px 0;
-            position: relative;
-            overflow-x: auto;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        code { font-family: monospace; font-size: 13px; color: #a1b56c; }
-        .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
+        .tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+            color: #fff;
             background: #222;
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 4px 8px;
-            font-size: 11px;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
         }
-        .copy-btn:hover { background: #333; color: var(--text-main); }
-        .lang-badge { position: absolute; top: -10px; left: 16px; background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; font-size: 10px; border-radius: 4px; color: var(--text-muted); }
 
-        /* Gallery */
-        .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
-        .gallery-img { width: 100%; aspect-ratio: 1; background: #111; border: 1px solid var(--border); border-radius: 8px; object-fit: cover; transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
-        .gallery-img:hover { transform: scale(1.05); box-shadow: var(--glow); border-color: #555; z-index: 10; position: relative; }
-        
+        .no-results {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 4rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            header { padding: 6rem 0 3rem; }
+            .container { padding: 0 1.5rem; }
+        }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="nav-group">
-            <span class="nav-label">Persona Mode</span>
-            <button class="btn active" onclick="setMode('General', this)">General</button>
-            <button class="btn" onclick="setMode('Coder', this)">Coder</button>
-            <button class="btn" onclick="setMode('Researcher', this)">Researcher</button>
-            <button class="btn" onclick="setMode('Artist', this)">Artist</button>
-        </div>
-        <div class="nav-group">
-            <span class="nav-label">Core Model</span>
-            <button class="btn active" onclick="setModel('GPT-4o', this)">GPT-4o</button>
-            <button class="btn" onclick="setModel('Claude 3.5 Sonnet', this)">Claude 3.5 Sonnet</button>
-            <button class="btn" onclick="setModel('Llama 3', this)">Llama 3</button>
-        </div>
-    </aside>
-
-    <main class="main">
-        <div class="chat-container" id="chat">
-            </div>
-
-        <div class="input-wrapper">
-            <div class="cmd-k-container">
-                <textarea id="promptInput" placeholder="Ask anything..." rows="1" oninput="autoResize(this)" onkeydown="handleEnter(event)"></textarea>
-                <div class="shortcut-hint" id="shortcutHint">⌘K</div>
+    <header>
+        <div class="container">
+            <h1>Intelligence Index</h1>
+            <p class="subtitle">A curated directory of the world's most capable foundation models. Search, compare, and integrate.</p>
+            <div class="search-wrapper">
+                <input type="text" id="search" placeholder="Search by model name or capability...">
             </div>
         </div>
+    </header>
+
+    <main class="container">
+        <div class="models-grid" id="grid"></div>
     </main>
 
     <script>
-        let currentMode = 'General';
-        
-        // Command-K Listener
-        document.addEventListener('keydown', (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                e.preventDefault();
-                document.getElementById('promptInput').focus();
+        const models = [
+            { name: "GPT-4o", desc: "Flagship multimodal engine. Exceptional reasoning across text, voice, and vision streams.", tag: "Multimodal" },
+            { name: "Claude 3.5 Sonnet", desc: "Advanced cognitive architecture. Industry-leading performance in coding and nuanced text analysis.", tag: "Logic / Code" },
+            { name: "Gemini 1.5 Pro", desc: "Massive context processing capability. Analyzes entire codebases and hours of raw video data natively.", tag: "Deep Context" },
+            { name: "Midjourney v6", desc: "High-fidelity image synthesis. Unmatched adherence to complex prompts and hyper-realistic aesthetic generation.", tag: "Vision" },
+            { name: "Sora", desc: "Physics-aware video generation. Creates temporally consistent, high-resolution cinematic sequences from text.", tag: "Generative Video" },
+            { name: "Llama 3", desc: "Highly optimized open-weight architecture. State-of-the-art instruction following and general dialogue.", tag: "Open Source" },
+            { name: "Suno v3", desc: "Parametric audio synthesis. Generates full-fidelity, structurally coherent musical compositions.", tag: "Audio" },
+            { name: "Mistral Large", desc: "Efficient, top-tier reasoning model optimized for multilingual tasks and complex logical operations.", tag: "Text Engine" },
+            { name: "Stable Diffusion 3", desc: "Next-generation latent diffusion model excelling in typography integration and prompt adherence.", tag: "Vision" }
+        ];
+
+        const grid = document.getElementById('grid');
+        const searchInput = document.getElementById('search');
+
+        function render(filterText = '') {
+            const filtered = models.filter(m => 
+                m.name.toLowerCase().includes(filterText) || 
+                m.desc.toLowerCase().includes(filterText) ||
+                m.tag.toLowerCase().includes(filterText)
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="no-results">No intelligence models found matching your criteria.</div>';
+                return;
             }
+
+            grid.innerHTML = filtered.map(m => `
+                <div class="card">
+                    <div class="card-header">
+                        <h2>${m.name}</h2>
+                    </div>
+                    <div class="card-body">
+                        <p>${m.desc}</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="tag">${m.tag}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            render(e.target.value.toLowerCase());
         });
 
-        // Input interactions
-        const promptInput = document.getElementById('promptInput');
-        promptInput.addEventListener('focus', () => { document.getElementById('shortcutHint').style.display = 'none'; });
-        promptInput.addEventListener('blur', () => { if(!promptInput.value) document.getElementById('shortcutHint').style.display = 'block'; });
-
-        function autoResize(el) {
-            el.style.height = 'auto';
-            el.style.height = (el.scrollHeight) + 'px';
-        }
-
-        function setMode(mode, el) {
-            currentMode = mode;
-            updateActiveState(el);
-        }
-
-        function setModel(model, el) { updateActiveState(el); }
-
-        function updateActiveState(clickedBtn) {
-            const siblings = clickedBtn.parentElement.querySelectorAll('.btn');
-            siblings.forEach(btn => btn.classList.remove('active'));
-            clickedBtn.classList.add('active');
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if(promptInput.value.trim() !== "") {
-                    submitPrompt(promptInput.value);
-                    promptInput.value = '';
-                    promptInput.style.height = '52px';
-                }
-            }
-        }
-
-        async function submitPrompt(text) {
-            const chat = document.getElementById('chat');
-            chat.innerHTML = ''; // Clear for demo purposes
-            
-            // Build UI Elements
-            const reasoningWrapper = document.createElement('div');
-            reasoningWrapper.className = 'reasoning-stream';
-            
-            const steps = [
-                { id: 'step1', text: 'Browsing Documentation...' },
-                { id: 'step2', text: 'Comparing Model Outputs...' },
-                { id: 'step3', text: 'Generating Final Answer...' }
-            ];
-
-            steps.forEach(s => {
-                const el = document.createElement('div');
-                el.className = 'step';
-                el.id = s.id;
-                el.innerHTML = `<div class="spinner"></div> ${s.text}`;
-                reasoningWrapper.appendChild(el);
-            });
-            chat.appendChild(reasoningWrapper);
-
-            // Execute Perplexity Logic Simulation
-            for (let i = 0; i < steps.length; i++) {
-                const stepEl = document.getElementById(steps[i].id);
-                stepEl.classList.add('active');
-                await new Promise(r => setTimeout(r, 800)); // Mock delay
-                stepEl.classList.remove('active');
-                stepEl.classList.add('done');
-                stepEl.innerHTML = `✓ ${steps[i].text}`;
-            }
-
-            // Show Citations
-            const citationsWrapper = document.createElement('div');
-            citationsWrapper.className = 'citations';
-            citationsWrapper.innerHTML = `
-                <div class="citation-card"><div class="favicon" style="background: #e24329;"></div> docs.linear.app</div>
-                <div class="citation-card"><div class="favicon" style="background: #fff;"></div> vercel.com/docs</div>
-            `;
-            chat.appendChild(citationsWrapper);
-
-            // Output Container
-            const outputEl = document.createElement('div');
-            outputEl.className = 'output-content';
-            chat.appendChild(outputEl);
-
-            // Mock Data Output based on mode
-            let targetText = "Here is the consolidated response based on the search results. ";
-            let codeBlock = false;
-            let images = false;
-
-            if (currentMode === 'Coder') {
-                targetText = "I found the documentation. Here is the implementation:\n\n";
-                codeBlock = true;
-            } else if (currentMode === 'Artist') {
-                targetText = "Generating visuals based on your prompt...\n\n";
-                images = true;
-            } else {
-                targetText += "The architecture uses edge caching and serverless functions to ensure low-latency model inference across the globe.";
-            }
-
-            // Streaming text effect
-            let i = 0;
-            const streamInterval = setInterval(() => {
-                outputEl.innerHTML += targetText.charAt(i);
-                i++;
-                chat.scrollTop = chat.scrollHeight;
-                if (i >= targetText.length) {
-                    clearInterval(streamInterval);
-                    appendRichContent(chat, codeBlock, images);
-                }
-            }, 15);
-        }
-
-        function appendRichContent(chat, isCode, isImage) {
-            if (isCode) {
-                const pre = document.createElement('pre');
-                pre.innerHTML = `
-<div class="lang-badge">javascript</div>
-<button class="copy-btn" onclick="this.innerText='Copied!';setTimeout(()=>this.innerText='Copy',2000)">Copy</button>
-<code>// Real-time API Simulation
-async function fetchStream() {
-  const response = await ai.query({ stream: true });
-  for await (const chunk of response) {
-    process(chunk);
-  }
-}</code>`;
-                chat.appendChild(pre);
-            }
-            if (isImage) {
-                const gallery = document.createElement('div');
-                gallery.className = 'gallery';
-                gallery.innerHTML = `
-                    <div class="gallery-img" style="background: linear-gradient(45deg, #111, #333);"></div>
-                    <div class="gallery-img" style="background: linear-gradient(45deg, #222, #444);"></div>
-                    <div class="gallery-img" style="background: linear-gradient(45deg, #050505, #2a2a2a);"></div>
-                `;
-                chat.appendChild(gallery);
-            }
-            chat.scrollTop = chat.scrollHeight;
-        }
+        // Initial render
+        render();
     </script>
 </body>
 </html>
