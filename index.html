@@ -1,397 +1,428 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHER | Enterprise AI Aggregation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-<title>AI Aggregator Platform</title>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: {
+                            DEFAULT: '#050505',
+                            light: '#0f0f0f',
+                            border: 'rgba(255,255,255,0.1)'
+                        },
+                        accent: '#ffffff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+        .glass {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
 
-<style>
+        .card-hover {
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+        }
 
-body{
-font-family:'Inter',sans-serif;
-background:#050505;
-color:#e6e6e6;
-overflow-x:hidden;
-}
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
 
-.glass{
-background:rgba(255,255,255,0.03);
-backdrop-filter:blur(20px);
-border:1px solid rgba(255,255,255,0.08);
-}
+        #three-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
 
-.section{
-padding-top:140px;
-padding-bottom:140px;
-}
+        .code-block {
+            background: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            border-left: 2px solid #ffffff;
+        }
 
-.model-card{
-transition:all .4s ease;
-border:1px solid rgba(255,255,255,0.08);
-background:rgba(255,255,255,0.02);
-}
+        input:focus ~ label, input:not(:placeholder-shown) ~ label {
+            transform: translateY(-20px) scale(0.85);
+            color: #ffffff;
+        }
 
-.model-card:hover{
-transform:scale(1.04);
-background:rgba(255,255,255,0.05);
-}
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -2px;
+            left: 0;
+            background-color: #fff;
+            transition: width 0.3s ease;
+        }
 
-.nav-blur{
-background:rgba(5,5,5,0.6);
-backdrop-filter:blur(16px);
-}
+        .nav-link:hover::after {
+            width: 100%;
+        }
 
-.code{
-background:#0d0d0d;
-border:1px solid rgba(255,255,255,0.08);
-font-family:monospace;
-}
-
-input,textarea{
-background:transparent;
-border:none;
-border-bottom:1px solid rgba(255,255,255,0.2);
-padding:12px 0;
-width:100%;
-}
-
-input:focus,textarea:focus{
-outline:none;
-border-bottom:1px solid #ffffff;
-}
-
-#three-bg{
-position:fixed;
-top:0;
-left:0;
-z-index:-1;
-}
-
-</style>
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+    </style>
 </head>
+<body class="antialiased">
 
-<body>
+    <canvas id="three-canvas"></canvas>
 
-<canvas id="three-bg"></canvas>
+    <nav class="fixed top-0 w-full z-50 glass border-b border-charcoal-border">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="text-xl font-semibold tracking-tighter uppercase">Aether</div>
+            
+            <div class="hidden md:flex space-x-10 text-sm font-medium tracking-wide">
+                <a href="#home" class="nav-link relative opacity-70 hover:opacity-100 transition-opacity">HOME</a>
+                <a href="#models" class="nav-link relative opacity-70 hover:opacity-100 transition-opacity">MODELS</a>
+                <a href="#about" class="nav-link relative opacity-70 hover:opacity-100 transition-opacity">VISION</a>
+                <a href="#docs" class="nav-link relative opacity-70 hover:opacity-100 transition-opacity">API</a>
+            </div>
 
-<header class="nav-blur fixed w-full z-50">
+            <div class="flex items-center space-x-6">
+                <button class="px-5 py-2 bg-white text-black text-xs font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors">
+                    Get Access
+                </button>
+                <div class="md:hidden flex flex-col space-y-1.5 cursor-pointer w-6 group" id="mobile-menu-toggle">
+                    <span class="h-0.5 w-full bg-white transition-all"></span>
+                    <span class="h-0.5 w-full bg-white transition-all"></span>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-<div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+    <main class="relative pt-20">
+        <section id="home" class="min-h-screen flex flex-col justify-center px-6 max-w-7xl mx-auto">
+            <div class="stagger-load">
+                <span class="text-xs tracking-[0.4em] uppercase opacity-50 block mb-6">INTELLIGENCE AGGREGATED</span>
+                <h1 class="text-6xl md:text-8xl font-light tracking-tight leading-tight mb-8">
+                    The Singularity <br>
+                    <span class="italic font-normal">Layer.</span>
+                </h1>
+                <p class="max-w-xl text-lg opacity-60 font-light leading-relaxed mb-12">
+                    Access the world's premier neural architectures through a single, low-latency API designed for the modern enterprise.
+                </p>
+                <div class="flex space-x-4">
+                    <div class="w-12 h-[1px] bg-white self-center"></div>
+                    <span class="text-xs tracking-widest uppercase py-2">Scroll to explore architectures</span>
+                </div>
+            </div>
+        </section>
 
-<div class="text-lg tracking-wide">AGGREGATOR</div>
+        <section id="models" class="py-32 px-6 max-w-7xl mx-auto">
+            <h2 class="text-3xl font-light mb-16 tracking-tight">Available Architectures</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="glass p-8 card-hover flex flex-col justify-between h-64 border border-charcoal-border">
+                    <div>
+                        <div class="text-[10px] tracking-widest uppercase opacity-40 mb-2">OpenAI</div>
+                        <h3 class="text-xl font-medium">GPT-4o</h3>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-xs opacity-50">128k Context</span>
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                </div>
+                <div class="glass p-8 card-hover flex flex-col justify-between h-64 border border-charcoal-border">
+                    <div>
+                        <div class="text-[10px] tracking-widest uppercase opacity-40 mb-2">Anthropic</div>
+                        <h3 class="text-xl font-medium">Claude 3.5 Sonnet</h3>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-xs opacity-50">200k Context</span>
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                </div>
+                <div class="glass p-8 card-hover flex flex-col justify-between h-64 border border-charcoal-border">
+                    <div>
+                        <div class="text-[10px] tracking-widest uppercase opacity-40 mb-2">Google</div>
+                        <h3 class="text-xl font-medium">Gemini 1.5 Pro</h3>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-xs opacity-50">2M Context</span>
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<nav class="hidden md:flex gap-10 text-sm tracking-wide">
+        <section class="py-32 bg-charcoal-light/30 border-y border-charcoal-border">
+            <div class="max-w-7xl mx-auto px-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+                    <div>
+                        <div class="text-4xl font-light mb-2">42ms</div>
+                        <div class="text-xs tracking-widest uppercase opacity-40">Avg Latency</div>
+                        <div class="mt-4 w-full bg-white/5 h-[1px]">
+                            <div class="bg-white h-full w-[85%] transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-light mb-2">99.99%</div>
+                        <div class="text-xs tracking-widest uppercase opacity-40">Uptime Reliability</div>
+                        <div class="mt-4 w-full bg-white/5 h-[1px]">
+                            <div class="bg-white h-full w-[99%] transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-light mb-2">2.4T</div>
+                        <div class="text-xs tracking-widest uppercase opacity-40">Tokens / Day</div>
+                        <div class="mt-4 w-full bg-white/5 h-[1px]">
+                            <div class="bg-white h-full w-[70%] transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<a href="#home">Home</a>
-<a href="#about">About</a>
-<a href="#docs">API</a>
-<a href="#contact">Contact</a>
+        <section id="about" class="py-32 px-6 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div>
+                    <h2 class="text-4xl font-light mb-8 tracking-tight italic">Beyond Connectivity.</h2>
+                    <p class="opacity-60 leading-relaxed mb-6">
+                        The evolution of Large Language Models has fragmented the technological landscape. Aether serves as the unifying neural layer, abstracting complexity into a seamless stream of intelligence.
+                    </p>
+                    <p class="opacity-60 leading-relaxed">
+                        Our infrastructure utilizes a dynamic routing protocol that evaluates cost, speed, and qualitative performance in real-time, ensuring your application always connects to the optimal node.
+                    </p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="h-32 border border-charcoal-border flex items-center justify-center text-[10px] tracking-widest opacity-30">ENCRYPTED</div>
+                    <div class="h-32 border border-charcoal-border flex items-center justify-center text-[10px] tracking-widest opacity-30">DECENTRALIZED</div>
+                    <div class="h-32 border border-charcoal-border flex items-center justify-center text-[10px] tracking-widest opacity-30">REDUNDANT</div>
+                    <div class="h-32 border border-charcoal-border flex items-center justify-center text-[10px] tracking-widest opacity-30">OPTIMIZED</div>
+                </div>
+            </div>
+        </section>
 
-</nav>
-
-<button id="menuBtn" class="md:hidden text-sm tracking-wide">
-Menu
-</button>
-
-</div>
-
-<div id="mobileMenu" class="hidden px-6 pb-6">
-
-<a class="block py-2" href="#home">Home</a>
-<a class="block py-2" href="#about">About</a>
-<a class="block py-2" href="#docs">API</a>
-<a class="block py-2" href="#contact">Contact</a>
-
-</div>
-
-</header>
-
-<section id="home" class="section text-center max-w-4xl mx-auto px-6">
-
-<h1 class="text-5xl md:text-6xl font-light leading-tight hero-text">
-Unified Intelligence Infrastructure
-</h1>
-
-<p class="mt-6 text-lg opacity-70 hero-text">
-Access the world's most advanced AI models through one unified API layer.
-</p>
-
-</section>
-
-<section class="section max-w-7xl mx-auto px-6">
-
-<h2 class="text-3xl font-light mb-14">Model Access</h2>
-
-<div class="grid md:grid-cols-3 gap-8">
-
-<div class="model-card p-8">
-<h3 class="text-xl">GPT-4o</h3>
-<p class="mt-3 opacity-60 text-sm">
-Multimodal high reasoning model
-</p>
-</div>
-
-<div class="model-card p-8">
-<h3 class="text-xl">Claude 3.5 Sonnet</h3>
-<p class="mt-3 opacity-60 text-sm">
-Long-context reasoning architecture
-</p>
-</div>
-
-<div class="model-card p-8">
-<h3 class="text-xl">Gemini 1.5 Pro</h3>
-<p class="mt-3 opacity-60 text-sm">
-Large context multimodal processing
-</p>
-</div>
-
-<div class="model-card p-8">
-<h3 class="text-xl">Llama 3</h3>
-<p class="mt-3 opacity-60 text-sm">
-Efficient open model inference
-</p>
-</div>
-
-<div class="model-card p-8">
-<h3 class="text-xl">DeepSeek V3</h3>
-<p class="mt-3 opacity-60 text-sm">
-High-throughput reasoning model
-</p>
-</div>
-
-</div>
-
-</section>
-
-<section class="section max-w-6xl mx-auto px-6">
-
-<h2 class="text-3xl font-light mb-14">Live Infrastructure Metrics</h2>
-
-<div class="grid md:grid-cols-3 gap-8">
-
-<div class="glass p-10">
-<p class="text-5xl">82ms</p>
-<p class="opacity-60 mt-3">Average Latency</p>
-</div>
-
-<div class="glass p-10">
-<p class="text-5xl">14k</p>
-<p class="opacity-60 mt-3">Requests / second</p>
-</div>
-
-<div class="glass p-10">
-<p class="text-5xl">99.99%</p>
-<p class="opacity-60 mt-3">Uptime</p>
-</div>
-
-</div>
-
-</section>
-
-<section id="about" class="section max-w-4xl mx-auto px-6">
-
-<h2 class="text-3xl font-light mb-8">Vision</h2>
-
-<p class="opacity-70 leading-relaxed">
-Large language models are evolving into a distributed intelligence layer.
-The future of computing will not rely on a single model provider but on
-dynamic orchestration across many architectures.
-Our infrastructure provides a unified gateway that abstracts model routing,
-latency optimization and load balancing.
-</p>
-
-<h2 class="text-3xl font-light mt-16 mb-8">Infrastructure</h2>
-
-<p class="opacity-70 leading-relaxed">
-The aggregation layer dynamically selects optimal models based on
-latency targets, cost thresholds and reasoning depth.
-Edge nodes distribute requests globally while maintaining deterministic
-routing logic.
-</p>
-
-</section>
-
-<section id="docs" class="section max-w-6xl mx-auto px-6">
-
-<h2 class="text-3xl font-light mb-12">API Documentation</h2>
-
-<div class="code p-6 mb-10">
-
-<pre>
-POST /v1/chat/completions
+        <section id="docs" class="py-32 px-6 max-w-7xl mx-auto border-t border-charcoal-border">
+            <div class="flex flex-col md:flex-row gap-16">
+                <div class="w-full md:w-1/3">
+                    <h2 class="text-2xl font-light mb-6">Integration</h2>
+                    <div class="space-y-4">
+                        <div class="text-sm opacity-100 font-medium border-l-2 border-white pl-4">Authentication</div>
+                        <div class="text-sm opacity-40 hover:opacity-100 transition-opacity pl-4 cursor-pointer">Chat Completion</div>
+                        <div class="text-sm opacity-40 hover:opacity-100 transition-opacity pl-4 cursor-pointer">Model Routing</div>
+                        <div class="text-sm opacity-40 hover:opacity-100 transition-opacity pl-4 cursor-pointer">Usage Analytics</div>
+                    </div>
+                </div>
+                <div class="w-full md:w-2/3">
+                    <div class="glass border border-charcoal-border rounded-sm overflow-hidden">
+                        <div class="bg-charcoal-light px-4 py-2 flex space-x-2 border-b border-charcoal-border">
+                            <div class="w-2 h-2 rounded-full bg-white/10"></div>
+                            <div class="w-2 h-2 rounded-full bg-white/10"></div>
+                        </div>
+                        <div class="p-6 overflow-x-auto">
+                            <pre class="text-xs leading-relaxed text-gray-400"><code><span class="text-white">POST</span> /v1/chat/completions
+<span class="text-white">Authorization:</span> Bearer AETHER_SECRET_KEY
+<span class="text-white">Content-Type:</span> application/json
 
 {
- "model":"gpt-4o",
- "messages":[
-   {"role":"user","content":"Hello"}
- ]
-}
-</pre>
+  "model": <span class="text-white">"aether-intelligent-auto"</span>,
+  "messages": [
+    { "role": "system", "content": "You are a specialist." },
+    { "role": "user", "content": "Analyze the dataset." }
+  ],
+  "preference": "latency"
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-</div>
+        <section id="contact" class="py-32 px-6 max-w-3xl mx-auto text-center">
+            <h2 class="text-3xl font-light mb-16 tracking-tight">Request Partnership</h2>
+            <form class="space-y-12">
+                <div class="relative group">
+                    <input type="text" id="name" placeholder=" " class="block w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-white transition-colors peer">
+                    <label for="name" class="absolute left-0 top-4 text-xs tracking-widest uppercase opacity-40 pointer-events-none transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-focus:-top-4 peer-focus:text-[10px]">Full Name</label>
+                </div>
+                <div class="relative group">
+                    <input type="email" id="email" placeholder=" " class="block w-full bg-transparent border-b border-white/20 py-4 focus:outline-none focus:border-white transition-colors peer">
+                    <label for="email" class="absolute left-0 top-4 text-xs tracking-widest uppercase opacity-40 pointer-events-none transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-4 peer-focus:-top-4 peer-focus:text-[10px]">Corporate Email</label>
+                </div>
+                <button class="w-full py-4 border border-white/20 text-xs tracking-[0.4em] uppercase hover:bg-white hover:text-black transition-all duration-500">
+                    Submit Inquiry
+                </button>
+            </form>
+        </section>
+    </main>
 
-<div class="overflow-x-auto">
+    <footer class="py-20 border-t border-charcoal-border glass">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+            <div class="col-span-1 md:col-span-1">
+                <div class="text-lg font-semibold tracking-tighter uppercase mb-6">Aether</div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span class="text-[10px] tracking-widest uppercase opacity-50">Systems Operational</span>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-[10px] tracking-[0.3em] uppercase opacity-30 mb-6">Platform</h4>
+                <ul class="text-sm space-y-4 opacity-60">
+                    <li><a href="#" class="hover:opacity-100">Models</a></li>
+                    <li><a href="#" class="hover:opacity-100">Pricing</a></li>
+                    <li><a href="#" class="hover:opacity-100">Enterprise</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-[10px] tracking-[0.3em] uppercase opacity-30 mb-6">Resources</h4>
+                <ul class="text-sm space-y-4 opacity-60">
+                    <li><a href="#" class="hover:opacity-100">Documentation</a></li>
+                    <li><a href="#" class="hover:opacity-100">API Status</a></li>
+                    <li><a href="#" class="hover:opacity-100">Open Source</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-[10px] tracking-[0.3em] uppercase opacity-30 mb-6">Legal</h4>
+                <ul class="text-sm space-y-4 opacity-60">
+                    <li><a href="#" class="hover:opacity-100">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:opacity-100">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-white/5 flex justify-between items-center text-[10px] tracking-widest opacity-30">
+            <span>© 2026 AETHER TECHNOLOGIES</span>
+            <span>BUILT FOR THE FUTURE</span>
+        </div>
+    </footer>
 
-<table class="w-full text-sm">
+    <script>
+        // --- THREE.JS BACKGROUND ---
+        const canvas = document.querySelector('#three-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 
-<thead class="opacity-60 border-b border-white/10">
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-<tr>
-<th class="text-left py-3">Endpoint</th>
-<th class="text-left py-3">Method</th>
-<th class="text-left py-3">Description</th>
-</tr>
+        // Create a mesh field
+        const geometry = new THREE.IcosahedronGeometry(2, 4);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0xffffff, 
+            wireframe: true, 
+            transparent: true, 
+            opacity: 0.05 
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
 
-</thead>
+        // Add some points/particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCnt = 1500;
+        const posArray = new Float32Array(particlesCnt * 3);
 
-<tbody>
+        for(let i = 0; i < particlesCnt * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 10;
+        }
 
-<tr class="border-b border-white/5">
-<td class="py-4">/chat/completions</td>
-<td>POST</td>
-<td>Unified chat interface</td>
-</tr>
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.003,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3
+        });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
 
-<tr class="border-b border-white/5">
-<td class="py-4">/models</td>
-<td>GET</td>
-<td>Available model list</td>
-</tr>
+        camera.position.z = 5;
 
-<tr class="border-b border-white/5">
-<td class="py-4">/usage</td>
-<td>GET</td>
-<td>Account usage statistics</td>
-</tr>
+        // Scroll interaction
+        let scrollY = window.scrollY;
+        window.addEventListener('scroll', () => {
+            scrollY = window.scrollY;
+            const targetRotation = scrollY * 0.001;
+            gsap.to(mesh.rotation, { y: targetRotation, x: targetRotation * 0.5, duration: 1.5 });
+            gsap.to(particlesMesh.rotation, { y: -targetRotation * 0.5, duration: 2 });
+        });
 
-</tbody>
+        function animate() {
+            requestAnimationFrame(animate);
+            mesh.rotation.y += 0.001;
+            particlesMesh.rotation.y += 0.0005;
+            renderer.render(scene, camera);
+        }
 
-</table>
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
-</div>
+        animate();
 
-</section>
+        // --- GSAP ANIMATIONS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
 
-<section id="contact" class="section max-w-xl mx-auto px-6">
+            // Stagger load
+            gsap.from('.stagger-load > *', {
+                y: 30,
+                opacity: 0,
+                duration: 1.2,
+                stagger: 0.2,
+                ease: "power4.out",
+                delay: 0.5
+            });
 
-<h2 class="text-3xl font-light mb-10">Contact</h2>
+            // Section reveals
+            gsap.utils.toArray('section').forEach(section => {
+                gsap.from(section, {
+                    scrollTrigger: {
+                        trigger: section,
+                        start: "top 80%",
+                    },
+                    opacity: 0,
+                    y: 20,
+                    duration: 1,
+                    ease: "power2.out"
+                });
+            });
+        });
 
-<form class="space-y-8">
-
-<input placeholder="Name">
-
-<input placeholder="Email">
-
-<textarea rows="4" placeholder="Message"></textarea>
-
-<button class="mt-6 border border-white/20 px-8 py-3 hover:bg-white hover:text-black transition">
-Submit
-</button>
-
-</form>
-
-</section>
-
-<footer class="border-t border-white/10 py-12 px-6">
-
-<div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 text-sm">
-
-<div>
-<p class="opacity-50">Platform</p>
-<p class="mt-4">Infrastructure</p>
-<p>API</p>
-<p>Status</p>
-</div>
-
-<div>
-<p class="opacity-50">Legal</p>
-<p class="mt-4">Privacy</p>
-<p>Terms</p>
-</div>
-
-<div class="text-right opacity-60">
-Operational
-</div>
-
-</div>
-
-</footer>
-
-<script>
-
-const btn=document.getElementById("menuBtn")
-const menu=document.getElementById("mobileMenu")
-
-btn.onclick=()=>{
-menu.classList.toggle("hidden")
-}
-
-gsap.from(".hero-text",{
-opacity:0,
-y:40,
-duration:1.2,
-stagger:0.3
-})
-
-const scene=new THREE.Scene()
-
-const camera=new THREE.PerspectiveCamera(
-75,
-window.innerWidth/window.innerHeight,
-0.1,
-1000
-)
-
-const renderer=new THREE.WebGLRenderer({
-canvas:document.getElementById("three-bg"),
-alpha:true
-})
-
-renderer.setSize(window.innerWidth,window.innerHeight)
-
-const geometry=new THREE.IcosahedronGeometry(2,1)
-
-const material=new THREE.MeshBasicMaterial({
-wireframe:true,
-color:0xffffff,
-transparent:true,
-opacity:0.08
-})
-
-const mesh=new THREE.Mesh(geometry,material)
-
-scene.add(mesh)
-
-camera.position.z=5
-
-function animate(){
-
-requestAnimationFrame(animate)
-
-mesh.rotation.x+=0.002
-mesh.rotation.y+=0.003
-
-renderer.render(scene,camera)
-
-}
-
-animate()
-
-window.addEventListener("scroll",()=>{
-
-mesh.rotation.x=window.scrollY*0.0005
-mesh.rotation.y=window.scrollY*0.0003
-
-})
-
-</script>
-
+        // Mobile Menu Toggle Logic (Visual only as per constraints)
+        const menuBtn = document.getElementById('mobile-menu-toggle');
+        menuBtn.addEventListener('click', () => {
+            const spans = menuBtn.querySelectorAll('span');
+            spans[0].classList.toggle('rotate-45');
+            spans[0].classList.toggle('translate-y-2');
+            spans[1].classList.toggle('-rotate-45');
+            spans[1].classList.toggle('-translate-y-1');
+        });
+    </script>
 </body>
 </html>
