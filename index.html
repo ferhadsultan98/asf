@@ -3,328 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuralRoute | Unified AI API</title>
+    <title>AI Routing Hub</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
-        :root {
-            --bg-base: #030303;
-            --bg-surface: rgba(15, 15, 15, 0.7);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --accent: #ffffff;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-main);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
-
-        canvas#webgl {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed; top: 0; width: 100%;
-            padding: 1.5rem 3rem;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(3, 3, 3, 0.5);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 100;
-        }
+        /* Base Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: #070709; color: #ededed; overflow-x: hidden; scroll-behavior: smooth; }
         
-        .logo { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.05em; }
-        .nav-links { display: flex; gap: 2.5rem; }
-        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
-        .nav-links a:hover { color: var(--text-main); }
-
-        /* Typography & Layout */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-        section { padding: 8rem 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+        /* Three.js Background */
+        #webgl-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; opacity: 0.4; pointer-events: none; }
         
-        h1 { font-size: 5vw; font-weight: 500; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 2rem; }
-        h2 { font-size: 3rem; font-weight: 400; letter-spacing: -0.03em; margin-bottom: 1.5rem; }
-        h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 1rem; }
-        p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin-bottom: 2rem; }
-
-        .tag { display: inline-block; padding: 0.3rem 0.8rem; border: 1px solid var(--border-color); border-radius: 100px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2rem; }
+        /* Typography */
+        h1, h2, h3 { font-weight: 500; letter-spacing: -0.03em; color: #ffffff; }
+        h1 { font-size: 4.5rem; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(135deg, #ffffff 0%, #737373 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+        p { font-size: 1.15rem; line-height: 1.6; color: #8a8a93; }
+        
+        /* Layout */
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+        section { padding: 10rem 0; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; position: relative; }
+        
+        /* Header & Navigation */
+        header { position: fixed; width: 100%; top: 0; z-index: 100; background: rgba(7, 7, 9, 0.7); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.03); transition: all 0.3s ease; }
+        nav { display: flex; justify-content: space-between; align-items: center; height: 80px; }
+        .logo { font-size: 1.5rem; font-weight: 600; text-decoration: none; color: #fff; letter-spacing: -0.05em; }
+        .nav-links { display: flex; gap: 3rem; }
+        .nav-links a { color: #8a8a93; text-decoration: none; font-size: 0.95rem; transition: color 0.3s ease; }
+        .nav-links a:hover { color: #fff; }
+        
+        /* Hamburger Menu */
+        .hamburger { display: none; cursor: pointer; flex-direction: column; gap: 6px; z-index: 101; }
+        .hamburger span { width: 30px; height: 2px; background-color: #fff; transition: 0.3s ease; }
+        .hamburger.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
 
         /* Grids & Cards */
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-        
-        .card {
-            background: var(--bg-surface); border: 1px solid var(--border-color);
-            padding: 2.5rem; border-radius: 8px; backdrop-filter: blur(10px);
-        }
-        .card h3 { margin-bottom: 0.5rem; }
-        .card p { font-size: 0.95rem; margin-bottom: 0; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 4rem; }
+        .card { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); padding: 3rem; border-radius: 20px; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; }
+        .card:hover { transform: translateY(-8px); background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1); }
+        .card h3 { margin-bottom: 1rem; font-size: 1.5rem; }
+        .card p { font-size: 1rem; }
 
-        /* Code Blocks */
-        pre {
-            background: #0a0a0a; border: 1px solid var(--border-color);
-            padding: 2rem; border-radius: 8px; font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem; color: #a8b2d1; overflow-x: auto;
-        }
-        .endpoint { font-family: 'JetBrains Mono', monospace; color: var(--text-main); background: #111; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 4px; display: inline-block; margin-bottom: 1rem; }
+        /* API Documentation */
+        .code-block { background: #000000; border: 1px solid rgba(255,255,255,0.08); padding: 2.5rem; border-radius: 16px; overflow-x: auto; margin-top: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        pre { color: #a5d6ff; font-family: 'Menlo', 'Monaco', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5; }
+        .token-keyword { color: #ff7b72; }
+        .token-string { color: #a5d6ff; }
+        .token-property { color: #79c0ff; }
 
         /* Forms */
-        input, textarea {
-            width: 100%; background: transparent; border: 1px solid var(--border-color);
-            padding: 1rem; color: var(--text-main); font-family: 'Inter', sans-serif;
-            border-radius: 4px; margin-bottom: 1rem; outline: none; transition: border-color 0.3s;
-        }
-        input:focus, textarea:focus { border-color: rgba(255,255,255,0.5); }
-        button {
-            background: var(--text-main); color: var(--bg-base); border: none;
-            padding: 1rem 2rem; font-weight: 500; border-radius: 4px; cursor: pointer;
-            transition: opacity 0.3s; font-family: 'Inter', sans-serif;
-        }
-        button:hover { opacity: 0.8; }
+        form { display: flex; flex-direction: column; gap: 1.5rem; max-width: 600px; margin-top: 4rem; }
+        input, textarea { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); padding: 1.5rem; border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: all 0.3s ease; }
+        input:focus, textarea:focus { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.02); }
+        button { background: #ffffff; color: #000000; border: none; padding: 1.2rem 3rem; border-radius: 30px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; align-self: flex-start; }
+        button:hover { transform: scale(1.05); opacity: 0.9; }
 
         /* Footer */
-        footer { border-top: 1px solid var(--border-color); padding: 4rem 0; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+        footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 5rem 0; text-align: center; color: #555; }
+        .footer-links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 2rem; }
+        .footer-links a { color: #8a8a93; text-decoration: none; font-size: 0.9rem; }
 
-        /* Utility for GSAP */
-        .reveal { opacity: 0; transform: translateY(30px); }
-
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            section { padding: 6rem 0; }
+            .nav-links { position: fixed; top: 0; right: -100%; width: 100%; height: 100vh; background: rgba(7, 7, 9, 0.98); backdrop-filter: blur(20px); flex-direction: column; justify-content: center; align-items: center; transition: 0.4s ease; }
+            .nav-links.active { right: 0; }
+            .nav-links a { font-size: 1.5rem; }
+            .hamburger { display: flex; }
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
+    <div id="webgl-container"></div>
 
-    <canvas id="webgl"></canvas>
-
-    <nav>
-        <div class="logo">NeuralRoute</div>
-        <div class="nav-links">
-            <a href="#home">Home</a>
-            <a href="#about">Architecture</a>
-            <a href="#api">API Docs</a>
-            <a href="#contact">Enterprise</a>
+    <header id="header">
+        <div class="container">
+            <nav>
+                <a href="#home" class="logo">AIHub</a>
+                <div class="nav-links" id="navLinks">
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#models">Models</a>
+                    <a href="#api">API</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <div class="hamburger" id="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
+            </nav>
         </div>
-    </nav>
+    </header>
 
     <main>
         <section id="home" class="container">
-            <div class="reveal">
-                <span class="tag">Unified Infrastructure</span>
-                <h1>One API.<br>Every Foundation Model.</h1>
-                <p>Route your requests intelligently across OpenAI, Anthropic, DeepSeek, Google, and Meta models through a single, highly-optimized endpoint. Built for scale, low latency, and redundancy.</p>
-                <button>Generate API Key</button>
-            </div>
-            
-            <div class="grid-3 reveal" style="margin-top: 6rem;">
-                <div class="card">
-                    <h3>DeepSeek V3</h3>
-                    <p>671B MoE. Optimized for complex math and coding tasks.</p>
-                </div>
-                <div class="card">
-                    <h3>Claude 3.5 Sonnet</h3>
-                    <p>Industry-leading intelligence and nuanced cognitive reasoning.</p>
-                </div>
-                <div class="card">
-                    <h3>GPT-4 Omni</h3>
-                    <p>High-speed, multimodal flagship model for general tasks.</p>
-                </div>
-            </div>
+            <h1>The Universal Interface<br>for Frontier AI.</h1>
+            <p style="max-width: 600px;">Seamlessly route requests to GPT-4o, Claude 3.5, Gemini Pro, DeepSeek V3, and Perplexity through a single, unified architecture. Zero latency. Infinite scale.</p>
         </section>
 
         <section id="about" class="container">
-            <div class="reveal">
-                <h2>Infrastructure & Architecture</h2>
-                <p>We do not just proxy requests. We provide an intelligent routing layer that automatically falls back during downtimes, optimizes context caching, and reduces token costs dynamically.</p>
-            </div>
-            <div class="grid-2 reveal" style="margin-top: 4rem;">
-                <div>
-                    <h3>Dynamic Fallbacks</h3>
-                    <p>When an upstream provider experiences latency spikes or outages, NeuralRoute automatically reroutes your prompt to the nearest capable equivalent model without breaking your application's flow.</p>
+            <h2>Architected for Performance</h2>
+            <p style="max-width: 800px; margin-bottom: 2rem;">AIHub abstracts the complexity of modern AI orchestration. We maintain active connections to every major provider, offering smart routing, automatic fallbacks, and localized caching.</p>
+            <p style="max-width: 800px;">Stop worrying about API key management, changing rate limits, or provider downtime. Our infrastructure handles the heavy lifting so your applications remain perfectly stable and lightning fast.</p>
+        </section>
+
+        <section id="models" class="container">
+            <h2>Available Intelligence</h2>
+            <p>Direct access to the world's most capable foundation models.</p>
+            <div class="grid">
+                <div class="card">
+                    <h3>GPT-4o</h3>
+                    <p>OpenAI's flagship multimodal model. Optimized for complex reasoning, logic, and rapid response generation.</p>
                 </div>
-                <div>
-                    <h3>Context Caching</h3>
-                    <p>Our edge nodes maintain secure, encrypted context caches for repetitive system prompts, drastically reducing your operational costs and time-to-first-token (TTFT).</p>
+                <div class="card">
+                    <h3>Claude 3.5 Sonnet</h3>
+                    <p>Anthropic's frontier model. Unparalleled performance in coding, nuanced writing, and deep analytical tasks.</p>
                 </div>
-                <div>
-                    <h3>Zero Data Retention</h3>
-                    <p>Enterprise compliance built-in. We operate entirely in memory. Your prompts and completions are never stored, trained on, or logged beyond temporary telemetry required for routing.</p>
+                <div class="card">
+                    <h3>Gemini 1.5 Pro</h3>
+                    <p>Google's massive context model. Capable of processing up to 2 million tokens for comprehensive data analysis.</p>
                 </div>
-                <div>
-                    <h3>Unified Billing</h3>
-                    <p>Stop managing multiple vendor invoices. Pay a single unified balance per token, with transparent cost breakdowns per model within our detailed dashboard.</p>
+                <div class="card">
+                    <h3>DeepSeek V3</h3>
+                    <p>Advanced open-weight architecture excelling in mathematical operations and algorithmic generation.</p>
+                </div>
+                <div class="card">
+                    <h3>Perplexity Sonar</h3>
+                    <p>Search-grounded responses ensuring factual accuracy and real-time internet context mapping.</p>
                 </div>
             </div>
         </section>
 
         <section id="api" class="container">
-            <div class="reveal">
-                <h2>Developer Documentation</h2>
-                <p>Our API is fully compatible with existing OpenAI SDKs. Simply change the base URL and pass the desired model string.</p>
-            </div>
-            
-            <div class="grid-2 reveal" style="margin-top: 2rem;">
-                <div>
-                    <h3>Authentication</h3>
-                    <p>Authenticate your API requests by including your secret API key in the Authorization header. Do not share or expose this key in client-side code.</p>
-                    <div class="endpoint">POST https://api.neuralroute.com/v1/chat/completions</div>
-                    <p>Supported model parameters: <br><code>anthropic/claude-3.5-sonnet</code><br><code>deepseek/deepseek-coder</code><br><code>meta-llama/llama-3-405b</code></p>
-                </div>
-                <div>
-<pre><code>curl -X POST https://api.neuralroute.com/v1/chat/completions \
-  -H "Authorization: Bearer nr_live_xxxxxxxxx" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "anthropic/claude-3.5-sonnet",
-    "messages": [
-      {"role": "system", "content": "You are a backend expert."},
-      {"role": "user", "content": "Explain load balancing."}
+            <h2>Developer Documentation</h2>
+            <p>Standardized REST endpoints for seamless integration.</p>
+            <div class="code-block">
+<pre><code><span class="token-keyword">const</span> response <span class="token-keyword">=</span> <span class="token-keyword">await</span> <span class="token-property">fetch</span>(<span class="token-string">'https://api.aihub.com/v1/chat/completions'</span>, {
+  method: <span class="token-string">'POST'</span>,
+  headers: {
+    <span class="token-string">'Authorization'</span>: <span class="token-string">'Bearer YOUR_API_KEY'</span>,
+    <span class="token-string">'Content-Type'</span>: <span class="token-string">'application/json'</span>
+  },
+  body: <span class="token-property">JSON</span>.stringify({
+    model: <span class="token-string">'claude-3-5-sonnet'</span>,
+    messages: [
+      { role: <span class="token-string">'system'</span>, content: <span class="token-string">'You are an expert software engineer.'</span> },
+      { role: <span class="token-string">'user'</span>, content: <span class="token-string">'Explain the architecture of a neural network.'</span> }
     ],
-    "temperature": 0.2
-  }'</code></pre>
-                </div>
+    temperature: <span class="token-keyword">0.7</span>
+  })
+});</code></pre>
             </div>
         </section>
 
         <section id="contact" class="container">
-            <div class="grid-2 reveal">
-                <div>
-                    <h2>Enterprise Support</h2>
-                    <p>Require custom SLA, dedicated throughput, or private VPC peering? Our engineering team works directly with enterprise clients to build bespoke routing solutions.</p>
-                    <br>
-                    <h3>Global Infrastructure</h3>
-                    <p>Operating across 14 global regions to ensure sub-20ms edge latency for request routing.</p>
-                </div>
-                <div class="card">
-                    <form onsubmit="event.preventDefault();">
-                        <input type="text" placeholder="Company Name" required>
-                        <input type="email" placeholder="Work Email" required>
-                        <textarea rows="4" placeholder="Expected volume and specific requirements..." required></textarea>
-                        <button type="submit" style="width: 100%;">Contact Engineering</button>
-                    </form>
-                </div>
-            </div>
+            <h2>Enterprise Solutions</h2>
+            <p>Request custom rate limits, localized deployments, and volume pricing.</p>
+            <form onsubmit="event.preventDefault(); alert('Inquiry submitted successfully.');">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Work Email" required>
+                <textarea rows="6" placeholder="Describe your use case..." required></textarea>
+                <button type="submit">Submit Inquiry</button>
+            </form>
         </section>
     </main>
 
     <footer>
         <div class="container">
-            <p>NeuralRoute Systems © 2026. Data Policy — Terms of Service — Status</p>
+            <div class="footer-links">
+                <a href="#home">Platform</a>
+                <a href="#models">Models</a>
+                <a href="#api">Documentation</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+            <p>&copy; 2026 AIHub Inc. All rights reserved.</p>
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
-
     <script>
-        // 1. Smooth Scrolling Setup (Lenis)
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            smooth: true
+        // Hamburger Menu Logic
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        const links = document.querySelectorAll('.nav-links a');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
         });
 
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
-
-        // 2. GSAP Scroll Animations
-        gsap.registerPlugin(ScrollTrigger);
-        
-        const reveals = document.querySelectorAll('.reveal');
-        reveals.forEach((element) => {
-            gsap.to(element, {
-                scrollTrigger: {
-                    trigger: element,
-                    start: "top 85%",
-                    toggleActions: "play none none reverse"
-                },
-                y: 0,
-                opacity: 1,
-                duration: 1,
-                ease: "power3.out"
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
             });
         });
 
-        // 3. Three.js Abstract Background (Non-toy, professional AI vibe)
-        const canvas = document.querySelector('#webgl');
-        const scene = new THREE.Scene();
-        
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 30;
+        // Header Background on Scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.style.background = 'rgba(7, 7, 9, 0.9)';
+            } else {
+                header.style.background = 'rgba(7, 7, 9, 0.7)';
+            }
+        });
 
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        // Three.js Abstract Background Animation
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('webgl-container').appendChild(renderer.domElement);
 
-        // Create abstract particles / nodes
+        // Create Particles
         const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 700;
+        const particlesCount = 3000;
         const posArray = new Float32Array(particlesCount * 3);
 
         for(let i = 0; i < particlesCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 100;
+            posArray[i] = (Math.random() - 0.5) * 15; // x, y, z spread
         }
 
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
         const particlesMaterial = new THREE.PointsMaterial({
-            size: 0.15,
+            size: 0.015,
             color: 0x888888,
             transparent: true,
-            opacity: 0.6,
+            opacity: 0.8,
             blending: THREE.AdditiveBlending
         });
 
         const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particlesMesh);
+        camera.position.z = 4;
 
-        // Subtle Mouse Interaction
+        // Mouse Interactivity
         let mouseX = 0;
         let mouseY = 0;
         let targetX = 0;
         let targetY = 0;
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
 
         document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
         });
 
-        // Scroll Interaction for Three.js
+        // Scroll Interactivity for Three.js
+        let scrollY = window.scrollY;
         window.addEventListener('scroll', () => {
-            particlesMesh.rotation.x = window.scrollY * 0.0005;
+            scrollY = window.scrollY;
         });
 
+        const clock = new THREE.Clock();
+
+        // Animation Loop
         function animate() {
             requestAnimationFrame(animate);
-            
-            targetX = mouseX * 0.5;
-            targetY = mouseY * 0.5;
+            const elapsedTime = clock.getElapsedTime();
 
-            particlesMesh.rotation.y += 0.001;
-            particlesMesh.rotation.x += 0.0005;
+            // Auto rotation
+            particlesMesh.rotation.y = elapsedTime * 0.03;
+            particlesMesh.rotation.x = elapsedTime * 0.01;
+
+            // Mouse parallax effect (smooth)
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
             
-            // Camera subtle follow
-            camera.position.x += (targetX - camera.position.x) * 0.02;
-            camera.position.y += (targetY - camera.position.y) * 0.02;
+            particlesMesh.rotation.y += 0.05 * (targetX - particlesMesh.rotation.y);
+            particlesMesh.rotation.x += 0.05 * (targetY - particlesMesh.rotation.x);
+
+            // Scroll parallax
+            camera.position.y = -scrollY * 0.002;
 
             renderer.render(scene, camera);
         }
+
         animate();
 
-        // Responsive handling
+        // Responsive Canvas
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
